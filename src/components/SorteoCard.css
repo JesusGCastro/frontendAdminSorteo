@@ -1,0 +1,32 @@
+.sorteo-card {
+  width: 11rem; /* 🔹 Tamaño más pequeño */
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin: 10px; /* Espaciado más natural */
+}
+
+.sorteo-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #f9f3fb; /* 💜 Suave cambio de fondo */
+}
+
+.sorteo-card img {
+  height: 120px; /* 🔹 Imagen más pequeña */
+  object-fit: contain;
+  padding: 10px;
+}
+
+.sorteo-card .card-body {
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+}
+
+.sorteo-card .card-title {
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.sorteo-card .text-muted {
+  font-size: 0.85rem;
+}

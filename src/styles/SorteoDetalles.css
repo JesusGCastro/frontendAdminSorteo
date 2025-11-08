@@ -1,0 +1,98 @@
+.sorteo-detalle-card {
+  background-color: #e9e1f3;
+  border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.sorteo-imagen {
+  width: 200px;
+  height: auto;
+  border-radius: 10px;
+}
+
+.sorteo-info p {
+  margin: 4px 0;
+}
+
+.boletos-section {
+  background-color: #f5f1fa;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.leyenda span {
+  margin-right: 15px;
+  font-weight: 500;
+}
+
+.leyenda .disponible::before,
+.leyenda .apartado::before,
+.leyenda .vendido::before,
+.leyenda .seleccionado::before {
+  content: "";
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  margin-right: 5px;
+}
+
+.leyenda .disponible::before {
+  background-color: white;
+  border: 1px solid #c0a0e0;
+}
+
+.leyenda .apartado::before {
+  background-color: #e37b7b;
+}
+
+.leyenda .vendido::before {
+  background-color: #c19ae8;
+}
+
+.leyenda .seleccionado::before {
+  background-color: #8ef5b5;
+}
+
+.boletos-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.boleto {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #b89ed9;
+  border-radius: 8px;
+  font-weight: bold;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.boleto:hover {
+  transform: scale(1.1);
+}
+
+.boleto.disponible {
+  background-color: white;
+}
+
+.boleto.apartado {
+  background-color: #e37b7b;
+  color: white;
+  border: none;
+}
+
+.boleto.vendido {
+  background-color: #c19ae8;
+  color: white;
+  border: none;
+}
+
+.boleto.seleccionado {
+  background-color: #8ef5b5;
+  border: 1px solid #2eb872;
+}

@@ -1,0 +1,60 @@
+/* Fondo general del sidebar */
+.sidebar {
+  width: 80px;
+  height: 100vh;
+  background-color: #f8f6ff;
+  border-right: 1px solid #e3d7ff;
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Enlaces dentro del sidebar */
+.sidebar-link {
+  text-decoration: none;
+  color: #000000;
+  margin: 12px 0;
+  transition: transform 0.2s ease-in-out;
+}
+
+.sidebar-link:hover {
+  transform: scale(1.1);
+}
+
+/* Contenedor de íconos */
+.icon-container {
+  background-color: #f1def7;
+  border-radius: 10px;
+  padding: 6px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+}
+
+/* Íconos activos (ruta actual) */
+.sidebar-link.active .icon-container {
+  background-color: #daa1ed;
+}
+
+/* Íconos Bootstrap */
+.sidebar i {
+  color: #000000 !important;
+}
+
+/* Imágenes tipo SVG o PNG */
+.sidebar-img {
+  width: 25px;
+  height: 25px;
+  filter: brightness(0);
+}
+
+/* Hover opcional para realzar */
+.sidebar-link:hover .icon-container {
+  background-color: #e8c7f2;
+}
