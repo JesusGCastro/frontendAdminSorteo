@@ -8,6 +8,7 @@ const Sidebar = () => {
   const location = useLocation();
   const [role, setRole] = useState(null);
   const navigate = useNavigate();
+  const [sorteadorFlag, setSorteadorFlag] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -22,6 +23,7 @@ const Sidebar = () => {
     console.log("DEBUG: sorteadorFlag:", sorteadorFlag);
 
     setRole(role);
+    setSorteadorFlag(sorteadorFlag);
   }, []);
 
 
