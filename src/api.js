@@ -170,6 +170,8 @@ export const getSession = () => {
 export const clearSession = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
+  localStorage.removeItem("puedeCambiarRol");
+  localStorage.removeItem("rolActual");
 };
 
 // Obtener información del usuario
