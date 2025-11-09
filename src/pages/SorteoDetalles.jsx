@@ -141,7 +141,7 @@ const SorteoDetalles = () => {
               <img src={sorteo.imagen} alt={sorteo.nombre} className="sorteo-imagen" />
               <div className="sorteo-info mt-3">
                 <p><strong>Premio:</strong> {sorteo.premio}</p>
-                <p><strong>Costo del boleto:</strong> ${sorteo.precio}</p>
+                <p><strong>Costo del boleto:</strong> ${sorteo.precioBoleto}</p>
                 <p><strong>Fecha final de compra boletos:</strong> {sorteo.fechaFinalVentaBoletos}</p>
               </div>
             </div>
