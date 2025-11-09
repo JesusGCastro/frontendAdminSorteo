@@ -12,7 +12,7 @@ const Sidebar = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-    const role = parsedUser?.role ?? null;
+    const role = parsedUser?.rol ?? null;
 
     console.log("DEBUG: role:", role);
     console.log("DEBUG: user:", parsedUser);
