@@ -42,13 +42,12 @@ const Sidebar = () => {
     ];
   } else {
     bottomItems = [
-      { nombre: "Perfil", icono: "bi bi-person-circle", ruta: "/login" },
       { nombre: "Configuración", icono: "bi bi-gear", ruta: "/config" },
       ...(role !== "participante"
         ? [{ nombre: "Switch", icono: "bi bi-person-check", ruta: "/sorteador" }]
         : []),
       // Botón de cerrar sesión
-      { nombre: "Cerrar Sesión", icono: "bi bi-box-arrow-left", onClick: handleLogout },
+      { nombre: "Cerrar Sesión", icono: "bi bi-arrow-left-right", onClick: handleLogout },
     ];
   }
 
