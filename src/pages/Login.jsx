@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
-import { loginUser, getUserProfile, saveSession, saveSorteador } from "../api";
+import { loginUser, getUserProfile, saveSession, saveSorteador, setPuedeCambiarRol } from "../api";
 
 export default function Login() {
   const [passwordShown, setPasswordShown] = useState(false);
@@ -26,13 +26,16 @@ export default function Login() {
 
         if (userData.rol === "sorteador") {
           // Redirigir a la vista de sorteador
-          saveSorteador("true");
+          setPuedeCambiarRol("true");
           navigate("/sorteador", { replace: true });
           return;
+        } else if (userData.rol === "participante") {
+          setPuedeCambiarRol("false");
+          navigate("/", { replace: true });
+          return;
         }
-        // Redirigir al login
-        // Redirige sin recargar
-        navigate("/", { replace: true });
+        setError("No tiene un rol valido");
+        return;
       }
 
     } catch (error) {

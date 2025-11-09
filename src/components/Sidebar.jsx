@@ -1,31 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { clearSession, getSorteador } from "../api";
+import { clearSession, getPuedeCambiarRol } from "../api";
 import { useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 
 const Sidebar = () => {
   const location = useLocation();
-  const [role, setRole] = useState(null);
+  const [rolActual, setRolActual] = useState(null);
   const navigate = useNavigate();
-  const [sorteadorFlag, setSorteadorFlag] = useState(false);
+  const [puedeCambiarRol, setPuedeCambiarRol] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-    const role = parsedUser?.rol ?? null;
-    const SorteadorFlagRaw = getSorteador();
-    const sorteadorFlag = SorteadorFlagRaw === "true";
+    const rolActual = parsedUser?.rol ?? null;
+    const puedeCambiarRol = getPuedeCambiarRol() === "true";
 
-    console.log("DEBUG: role:", role);
-    console.log("DEBUG: user:", parsedUser);
-    console.log("DEBUG: SorteadorFlag:", SorteadorFlagRaw);
-    console.log("DEBUG: sorteadorFlag:", sorteadorFlag);
-
-    setRole(role);
-    setSorteadorFlag(sorteadorFlag);
+    setRolActual(rolActual);
+    setPuedeCambiarRol(puedeCambiarRol);
   }, []);
-
 
   const handleLogout = async () => {
     try {
@@ -36,21 +29,31 @@ const Sidebar = () => {
     }
   };
 
+  const handleChange = () => {
+    if (rolActual === "sorteador") {
+      setRolActual("participante");
+      navigate("/");
+    } else {
+      setRolActual("sorteador");
+      navigate("/sorteador");
+    }
+  };
+
   const menuItems = [
     { nombre: "Sorteos", icono: "bi bi-calendar2-event", ruta: "/" },
     { nombre: "Boletos", icono: "bi bi-ticket-perforated", ruta: "/boletos" },
   ];
 
   let bottomItems;
-  if (role === null) {
+  if (rolActual === null) {
     bottomItems = [
       { nombre: "Perfil", icono: "bi bi-person-circle", ruta: "/login" },
     ];
   } else {
     bottomItems = [
       { nombre: "Configuración", icono: "bi bi-gear", ruta: "/config" },
-      ...(sorteadorFlag
-        ? [{ nombre: "Switch", icono: "bi bi-arrow-left-right", ruta: "/sorteador" }]
+      ...(puedeCambiarRol === "true" 
+        ? [{ nombre: "Switch", icono: "bi bi-arrow-left-right", onClick: handleChange }]
         : []),
       // Botón de cerrar sesión
       { nombre: "Cerrar Sesión", icono: "bi bi-box-arrow-left", onClick: handleLogout },
