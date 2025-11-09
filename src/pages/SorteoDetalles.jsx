@@ -74,8 +74,9 @@ const SorteoDetalles = () => {
       return;
     }
     const token = getToken();
-    if (!token) {
-      alert("Debes iniciar sesión para apartar boletos.");
+    if (verifyToken(token) === false) {
+      //Redirigir al login
+      window.location.href = "/login";
       return;
     }
     const numerosAStrings = boletosSeleccionados.map(String);
