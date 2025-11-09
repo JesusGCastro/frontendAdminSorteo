@@ -11,6 +11,16 @@ export const getPuedeCambiarRol = () => {
   return localStorage.getItem("puedeCambiarRol");
 }
 
+// Guardar rolActual
+export const setRolActual = (rolActual) => {
+  localStorage.setItem("rolActual", rolActual);
+};
+
+// Obtener rolActual
+export const getRolActual = () => {
+  return localStorage.getItem("rolActual");
+}
+
 // Guardar token
 export const saveToken = (token) => {
   localStorage.setItem("token", token);

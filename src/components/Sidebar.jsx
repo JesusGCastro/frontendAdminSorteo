@@ -1,24 +1,15 @@
-import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { clearSession, getPuedeCambiarRol } from "../api";
+import { clearSession, getPuedeCambiarRol, setRolActual, getRolActual } from "../api";
 import { useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 
 const Sidebar = () => {
   const location = useLocation();
-  const [rolActual, setRolActual] = useState(null);
   const navigate = useNavigate();
-  const [puedeCambiarRol, setPuedeCambiarRol] = useState(false);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-    const rolActual = parsedUser?.rol ?? null;
-    const puedeCambiarRol = getPuedeCambiarRol() === "true";
-
-    setRolActual(rolActual);
-    setPuedeCambiarRol(puedeCambiarRol);
-  }, []);
+  //Debug
+  console.log("Rol actual:", getRolActual());
+  console.log("Puede cambiar rol:", getPuedeCambiarRol());
 
   const handleLogout = async () => {
     try {
@@ -45,14 +36,14 @@ const Sidebar = () => {
   ];
 
   let bottomItems;
-  if (rolActual === null) {
+  if (getRolActual() === null) {
     bottomItems = [
       { nombre: "Perfil", icono: "bi bi-person-circle", ruta: "/login" },
     ];
   } else {
     bottomItems = [
       { nombre: "Configuración", icono: "bi bi-gear", ruta: "/config" },
-      ...(puedeCambiarRol === "true" 
+      ...(getPuedeCambiarRol() === "true"
         ? [{ nombre: "Switch", icono: "bi bi-arrow-left-right", onClick: handleChange }]
         : []),
       // Botón de cerrar sesión
