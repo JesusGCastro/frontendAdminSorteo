@@ -17,11 +17,14 @@ const SorteoDetalles = () => {
 
   useEffect(() => {
     const obtenerSorteo = async () => {
-      const data = await getSorteoById(id);
-      const sorteosData = Array.isArray(data[0]) ? data[0] : data;
-      const idNumerico = parseInt(id, 10);
-      const seleccionado = sorteosData.find((s) => s.id === idNumerico);
-      setSorteo(seleccionado);
+      
+      try {
+        const data = await getSorteoById(id);
+        setSorteo(data);
+      } catch (error) {
+        console.error("Error al obtener sorteo:", error);
+      }
+
     };
     obtenerSorteo();
   }, [id]);
