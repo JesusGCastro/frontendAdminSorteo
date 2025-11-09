@@ -63,7 +63,7 @@ export const apartarNumeros = async (sorteoId, numeros, token) => {
   const data = await res.json();
   return data;
 }
-// llamada al api gateway
+// Obtener boletos creados de un sorteo
 
 export const getBoletosPorSorteo = async (sorteoId) => {
   const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${sorteoId}/tickets`, {
