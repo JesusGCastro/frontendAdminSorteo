@@ -23,7 +23,7 @@ const SorteoCard = ({ sorteo }) => {
       />
       <div className="card-body">
         <h6 className="card-title">{sorteo.nombre}</h6>
-        <p className="text-muted">${sorteo.precio}</p>
+        <p className="text-muted">${sorteo.precioBoleto}</p>
       </div>
     </div>
   );
