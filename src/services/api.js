@@ -63,4 +63,17 @@ export const apartarNumeros = async (sorteoId, numeros, token) => {
   const data = await res.json();
   return data;
 }
+// llamada al api gateway
 
+export const getBoletosPorSorteo = async (sorteoId) => {
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${sorteoId}/tickets`, {
+    method: "GET",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error al consultar los boletos del sorteo: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data;
+};
