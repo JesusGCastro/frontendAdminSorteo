@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { clearSession } from "../api";
+import { clearSession, getSorteador } from "../api";
 import { useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 
@@ -14,7 +14,7 @@ const Sidebar = () => {
     const storedUser = localStorage.getItem("user");
     const parsedUser = storedUser ? JSON.parse(storedUser) : null;
     const role = parsedUser?.rol ?? null;
-    const SorteadorFlagRaw = localStorage.getItem("sorteadorFlag");
+    const SorteadorFlagRaw = getSorteador();
     const sorteadorFlag = SorteadorFlagRaw === "true";
 
     console.log("DEBUG: role:", role);
