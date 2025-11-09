@@ -1,20 +1,50 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { clearSession } from "../api";
+import { useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 
 const Sidebar = () => {
   const location = useLocation();
+  const [role, setRole] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Leer valor del localStorage
+    const storedRole = localStorage.getItem("role");
+    setRole(storedRole);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await clearSession();
+      navigate("/login");
+    } catch (error) {
+      console.error("Error cerrando sesión:", error);
+    }
+  };
 
   const menuItems = [
     { nombre: "Sorteos", icono: "bi bi-calendar2-event", ruta: "/" },
     { nombre: "Boletos", icono: "bi bi-ticket-perforated", ruta: "/boletos" },
   ];
 
-  const bottomItems = [
-    { nombre: "Perfil", icono: "bi bi-person-circle", ruta: "/login" },
-    { nombre: "Configuración", icono: "bi bi-gear", ruta: "/config" },
-    { nombre: "Switch", img: "/assets/switchProfile.png", ruta: "/sorteador" },
-  ];
+  let bottomItems;
+  if (role === null) {
+    bottomItems = [
+      { nombre: "Perfil", icono: "bi bi-person-circle", ruta: "/login" },
+    ];
+  } else {
+    bottomItems = [
+      { nombre: "Perfil", icono: "bi bi-person-circle", ruta: "/login" },
+      { nombre: "Configuración", icono: "bi bi-gear", ruta: "/config" },
+      ...(role !== "participante"
+        ? [{ nombre: "Switch", icono: "bi bi-person-check", ruta: "/sorteador" }]
+        : []),
+      // Botón de cerrar sesión
+      { nombre: "Cerrar Sesión", icono: "bi bi-box-arrow-left", onClick: handleLogout },
+    ];
+  }
 
   return (
     <div className="sidebar d-flex flex-column align-items-center py-4">
@@ -40,7 +70,18 @@ const Sidebar = () => {
       <div className="d-flex flex-column align-items-center">
         {bottomItems.map((item, i) => {
           const isActive = location.pathname === item.ruta;
-          return (
+
+          return item.onClick ? (
+            <button
+              key={i}
+              onClick={item.onClick}
+              className="sidebar-link btn p-0"
+            >
+              <div className="icon-container">
+                <i className={`${item.icono} fs-4`} />
+              </div>
+            </button>
+          ) : (
             <Link
               key={i}
               to={item.ruta || "/"}
@@ -48,11 +89,7 @@ const Sidebar = () => {
             >
               <div className="icon-container">
                 {item.img ? (
-                  <img
-                    src={item.img}
-                    alt={item.nombre}
-                    className="sidebar-img"
-                  />
+                  <img src={item.img} alt={item.nombre} className="sidebar-img" />
                 ) : (
                   <i className={`${item.icono} fs-4`} />
                 )}
@@ -60,6 +97,7 @@ const Sidebar = () => {
             </Link>
           );
         })}
+
       </div>
     </div>
   );

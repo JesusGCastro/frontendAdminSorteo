@@ -105,6 +105,12 @@ export const registerUser = async (nombre, correo, contrasenia) => {
       throw new Error(responseData.error || "Datos de registro no válidos");
     }
 
+    // Caso 1: Error correo ya registrado
+    if (res.status == 502) {
+      console.warn("Error del backend (correo ya registrado):", responseData);
+      throw new Error(responseData.error || "Correo ya registrado, intenta con otro.");
+    }
+
     // Caso 2: Error del servidor o gateway
     if (res.status >= 500) {
       console.error("Error del servidor o gateway:", responseData);
