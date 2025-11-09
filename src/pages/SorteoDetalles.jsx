@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchSorteos } from "../services/api";
+import { consultarSorteos } from "../services/api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
 
@@ -14,7 +14,7 @@ const SorteoDetalles = () => {
 
   useEffect(() => {
     const obtenerSorteo = async () => {
-      const data = await fetchSorteos();
+      const data = await consultarSorteos();
       const sorteosData = Array.isArray(data[0]) ? data[0] : data;
       const idNumerico = parseInt(id, 10);
       const seleccionado = sorteosData.find((s) => s.id === idNumerico);
