@@ -23,6 +23,13 @@ export default function Login() {
         const userData = await getUserProfile(data.token);
         console.log("Datos del usuario:", userData);
         saveSession(data.token, userData); // guarda todo
+
+        if (userData.rol === "sorteador") {
+          // Redirigir a la vista de sorteador
+          saveSorteador("true");
+          navigate("/sorteador", { replace: true });
+          return;
+        }
         // Redirigir al login
         // Redirige sin recargar
         navigate("/", { replace: true });

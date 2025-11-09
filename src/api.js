@@ -1,6 +1,16 @@
 // src/api.js
 const API_URL = "https://apigatewaysorteos.onrender.com";
 
+// Guardar sorteadorFlag
+export const saveSorteador = (sorteadorFlag) => {
+  localStorage.setItem("sorteadorFlag", sorteadorFlag);
+};
+
+// Obtener sorteadorFlag
+export const getSorteador = () => {
+  return localStorage.getItem("sorteadorFlag");
+}
+
 // Guardar token
 export const saveToken = (token) => {
   localStorage.setItem("token", token);

@@ -13,9 +13,13 @@ const Sidebar = () => {
     const storedUser = localStorage.getItem("user");
     const parsedUser = storedUser ? JSON.parse(storedUser) : null;
     const role = parsedUser?.rol ?? null;
+    const SorteadorFlagRaw = localStorage.getItem("sorteadorFlag");
+    const sorteadorFlag = SorteadorFlagRaw === "true";
 
     console.log("DEBUG: role:", role);
     console.log("DEBUG: user:", parsedUser);
+    console.log("DEBUG: SorteadorFlag:", SorteadorFlagRaw);
+    console.log("DEBUG: sorteadorFlag:", sorteadorFlag);
 
     setRole(role);
   }, []);
@@ -43,7 +47,7 @@ const Sidebar = () => {
   } else {
     bottomItems = [
       { nombre: "Configuración", icono: "bi bi-gear", ruta: "/config" },
-      ...(role !== "participante"
+      ...(sorteadorFlag
         ? [{ nombre: "Switch", icono: "bi bi-arrow-left-right", ruta: "/sorteador" }]
         : []),
       // Botón de cerrar sesión
