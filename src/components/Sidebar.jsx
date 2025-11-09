@@ -21,7 +21,7 @@ const Sidebar = () => {
   };
 
   const handleChange = () => {
-    if (rolActual === "sorteador") {
+    if (getRolActual() === "sorteador") {
       setRolActual("participante");
       navigate("/");
     } else {
