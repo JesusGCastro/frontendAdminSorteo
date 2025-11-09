@@ -27,10 +27,12 @@ export default function Login() {
         if (userData.rol === "sorteador") {
           // Redirigir a la vista de sorteador
           setPuedeCambiarRol("true");
+          setRolActual("sorteador");
           navigate("/sorteador", { replace: true });
           return;
         } else if (userData.rol === "participante") {
           setPuedeCambiarRol("false");
+          setRolActual("participante");
           navigate("/", { replace: true });
           return;
         }
