@@ -7,6 +7,10 @@ const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  //Debug
+  console.log("Rol actual:", getRolActual());
+  console.log("Puede cambiar rol:", getPuedeCambiarRol());
+
   const handleLogout = async () => {
     try {
       await clearSession();

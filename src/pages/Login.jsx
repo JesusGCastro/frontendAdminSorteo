@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
-import { loginUser, getUserProfile, saveSession, setPuedeCambiarRol } from "../api";
+import { loginUser, getUserProfile, saveSession, setPuedeCambiarRol, setRolActual } from "../api";
 
 export default function Login() {
   const [passwordShown, setPasswordShown] = useState(false);
@@ -25,11 +25,13 @@ export default function Login() {
         saveSession(data.token, userData); // guarda todo
 
         if (userData.rol === "sorteador") {
-          // Redirigir a la vista de sorteador
+          // Poner un debug
+          console.log("Rol actual:", userData.rol);
           setPuedeCambiarRol("true");
           setRolActual("sorteador");
           navigate("/sorteador", { replace: true });
           return;
+
         } else if (userData.rol === "participante") {
           setPuedeCambiarRol("false");
           setRolActual("participante");
