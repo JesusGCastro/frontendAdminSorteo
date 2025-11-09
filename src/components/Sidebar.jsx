@@ -11,8 +11,13 @@ const Sidebar = () => {
 
   useEffect(() => {
     // Leer valor del localStorage
-    const storedRole = localStorage.getItem("role");
-    setRole(storedRole);
+    const storedUser = localStorage.getItem("user");
+    const role = storedUser ? JSON.parse(storedUser).role : null;
+    
+    console.log("DEBUG: user:", parsedUser);
+    console.log("DEBUG: role:", role);
+
+    setRole(role);
   }, []);
 
   const handleLogout = async () => {
