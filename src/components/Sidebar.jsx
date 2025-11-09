@@ -44,10 +44,10 @@ const Sidebar = () => {
     bottomItems = [
       { nombre: "Configuración", icono: "bi bi-gear", ruta: "/config" },
       ...(role !== "participante"
-        ? [{ nombre: "Switch", icono: "bi bi-person-check", ruta: "/sorteador" }]
+        ? [{ nombre: "Switch", icono: "bi bi-arrow-left-right", ruta: "/sorteador" }]
         : []),
       // Botón de cerrar sesión
-      { nombre: "Cerrar Sesión", icono: "bi bi-arrow-left-right", onClick: handleLogout },
+      { nombre: "Cerrar Sesión", icono: "bi bi-box-arrow-left", onClick: handleLogout },
     ];
   }
 
