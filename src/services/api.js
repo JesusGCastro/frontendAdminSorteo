@@ -48,7 +48,7 @@ export const getSorteoById = async (id) => {
 
 // Apartar números para un sorteo
 export const apartarNumeros = async (sorteoId, numeros, token) => {
-  const bodyData = { sorteoId, numeros };
+  const bodyData = { numerosBoletos: numeros };
   const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${sorteoId}/tickets`, {
     method: "POST",
     headers: {
