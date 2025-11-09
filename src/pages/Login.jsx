@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
 import { loginUser, getUserProfile, saveSession } from "../api";
@@ -8,6 +8,7 @@ export default function Login() {
   const [correo, setCorreo] = useState("");
   const [contrasenia, setContrasenia] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate(); // se usa para redirigir
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,9 +24,8 @@ export default function Login() {
         console.log("Datos del usuario:", userData);
         saveSession(data.token, userData); // guarda todo
         // Redirigir al login
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 1000);
+        // Redirige sin recargar
+        navigate("/", { replace: true });
       }
 
     } catch (error) {

@@ -121,7 +121,7 @@ export default function Register() {
       setError("Registro exitoso. Redirigiendo..."); // Mensaje temporal de éxito
       // Redirigir al login
       setTimeout(() => {
-        window.location.href = "/Login";
+        window.location.href = "/frontendAdminSorteo/#/login";
       }, 1000);
     } catch (error) {
       console.error("Error en handleSubmit:", error.message);
