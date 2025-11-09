@@ -74,8 +74,11 @@ const SorteoDetalles = () => {
       return;
     }
     const token = getToken();
+    //Debug
+    console.log("Token:", token);
     if (verifyToken(token) === false) {
-      //Redirigir al login
+      //Debug
+      console.error("Token inválido o expirado.");
       window.location.href = "/login";
       return;
     }
