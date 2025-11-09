@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { getSorteoById, apartarNumeros, getBoletosPorSorteo } from "../services/api";
-import { getToken } from "../api";
+import { getToken, verifyToken } from "../api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
 
