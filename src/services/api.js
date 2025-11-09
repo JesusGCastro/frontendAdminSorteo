@@ -5,7 +5,7 @@ const RAFFLES_PATH = "api/raffles";
 
 // Crear sorteo
 export const crearSorteo = async (sorteoData, token) => {
-  const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, {
+  const res = await fetch(`${API_URL}/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -23,7 +23,7 @@ export const crearSorteo = async (sorteoData, token) => {
 // Consultar sorteos
 export const consultarSorteos = async () => {
 
-    const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, {
+    const res = await fetch(`${API_URL}/`, {
       method: "GET",
     });
 
@@ -38,7 +38,7 @@ export const consultarSorteos = async () => {
 
 // Obtener sorteo por ID
 export const getSorteoById = async (id) => {
-  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${id}`, {
+  const res = await fetch(`${API_URL}/raffle${id}`, {
     method: "GET",
   });
   if (!res.ok) {
@@ -51,7 +51,7 @@ export const getSorteoById = async (id) => {
 // Apartar números para un sorteo
 export const apartarNumeros = async (sorteoId, numeros, token) => {
   const bodyData = { sorteoId, numeros };
-  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${sorteoId}/tickets`, {
+  const res = await fetch(`${API_URL}/${sorteoId}/tickets`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
