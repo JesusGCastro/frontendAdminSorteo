@@ -17,19 +17,39 @@ const Home = () => {
     setUsuario(session.user);
 
     const obtenerSorteos = async () => {
-      const data = await consultarSorteos();
-      // para desempacar en caso de que el sorteo venga en array anidado
-      const sorteosData = Array.isArray(data[0]) ? data[0] : data;
-      setSorteos(sorteosData);
+      try {
+
+        
+        const data = await consultarSorteos();
+        
+        // 3. Lógica defensiva para desempacar el array (como preguntaste)
+        // (Asegurarse que data exista antes de acceder a data[0])
+        const sorteosData = data && Array.isArray(data[0]) ? data[0] : data;
+        
+        // 4. Asegurarnos que siempre seteamos un array
+        setSorteos(Array.isArray(sorteosData) ? sorteosData : []);
+
+      } catch (err) {
+        // 5. SOLUCIÓN PUNTO 2: Capturar cualquier error de la API
+        console.error("Error al cargar sorteos:", err);
+        console.log(err.message); // Guardar el error para mostrarlo al usuario
+      } finally {
+        // 6. SOLUCIÓN PUNTO 2: Indicar que la carga terminó (ya sea con éxito o error)
+        console.log("Intento de carga de sorteos finalizado.");
+      }
     };
+
+    // 7. Llamar a la función
     obtenerSorteos();
+    
   }, []);
 
   // Filtrar por estado activo y por nombre
-  const sorteosFiltrados = sorteos.filter(
+  const sorteosFiltrados = (sorteos || []).filter(
+    // Asegura que 'sorteos' sea un array
     (s) =>
       s.estado === "activo" &&
-      s.nombre.toLowerCase().includes(filtro.toLowerCase())
+      (s.nombre || "").toLowerCase().includes(filtro.toLowerCase()) // Defensa contra nombre nulo
   );
 
   // Mostrar nombre o "Invitado"
@@ -43,7 +63,6 @@ const Home = () => {
       {/* Contenido principal */}
       <div className="flex-grow-1" style={{ marginLeft: "80px" }}>
         <div className="container py-4">
-
           {/* Etiqueta del usuario */}
           <p
             style={{

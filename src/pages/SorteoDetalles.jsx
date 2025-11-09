@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { consultarSorteos } from "../services/api";
+import { getSorteoById } from "../services/api";
+import { apartarNumeros } from "../services/api"; 
+import { getToken } from "../api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
+
 
 const SorteoDetalles = () => {
   const { id } = useParams();
@@ -14,7 +17,7 @@ const SorteoDetalles = () => {
 
   useEffect(() => {
     const obtenerSorteo = async () => {
-      const data = await consultarSorteos();
+      const data = await getSorteoById(id);
       const sorteosData = Array.isArray(data[0]) ? data[0] : data;
       const idNumerico = parseInt(id, 10);
       const seleccionado = sorteosData.find((s) => s.id === idNumerico);
@@ -56,9 +59,39 @@ const SorteoDetalles = () => {
   };
 
   const apartarBoletos = () => {
-    console.log("Boletos apartados:", boletosSeleccionados);
-    alert(`Has apartado los boletos: ${boletosSeleccionados.join(", ")}`);
+    if (boletosSeleccionados.length === 0) {
+      alert("Selecciona al menos un boleto para apartar.");
+      return;
+    }
+    const token = getToken();
+    if (!token) {
+      alert("Debes iniciar sesión para apartar boletos.");
+      return;
+    }
+    apartarNumeros(sorteo.id, boletosSeleccionados, token)
+      .then((response) => {
+
+        const numerosApartados = response.reservedTickets.map(ticket => ticket.numeroBoleto);
+        
+        // Damos un mensaje más claro al usuario
+        alert(`Boletos apartados exitosamente: ${numerosApartados.join(", ")}`);
+
+        setBoletosSeleccionados([]);
+
+        // Si la API informó que algunos boletos fallaron (ya estaban ocupados)
+        if (response.failedToReserve && response.failedToReserve.length > 0) {
+          alert(`Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(", ")}`);
+        }
+      })
+      .catch((error) => {
+        // --- AQUÍ MANEJAMOS ERRORES ---
+        console.error("Error al apartar boletos:", error);
+        // Mostramos el mensaje de error que viene de la API
+        alert(`Hubo un error al apartar los boletos: ${error.message}`);
+      }
+    );
   };
+  
 
   return (
     <div className="d-flex">
