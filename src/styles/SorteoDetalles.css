@@ -96,3 +96,15 @@
   background-color: #8ef5b5;
   border: 1px solid #2eb872;
 }
+
+/* Estilo para boletos apartados (amarillo) */
+.boleto.apartado {
+  background-color: #ffc107;
+  color: #000;
+  border-color: #e6ac00;
+  cursor: not-allowed;
+}
+.boleto.apartado:hover {
+  background-color: #ffc107;
+  border-color: #e6ac00;
+}

@@ -1,61 +1,73 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { getSorteoById } from "../services/api";
-import { apartarNumeros } from "../services/api";
+import { getSorteoById, apartarNumeros, getBoletosPorSorteo } from "../services/api";
 import { getToken } from "../api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
 
 const SorteoDetalles = () => {
   const { id } = useParams();
-  console.log("ID del sorteo:", id);
   const [sorteo, setSorteo] = useState(null);
+  const [boletosOcupados, setBoletosOcupados] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
   const [boletosSeleccionados, setBoletosSeleccionados] = useState([]);
   const boletosPorPagina = 52;
 
+  // Carga los datos del sorteo y los boletos ocupados al montar el componente
   useEffect(() => {
-    const obtenerSorteo = async () => {
+    const obtenerDatosCompletos = async () => {
       try {
-        const response = await getSorteoById(id);
-        setSorteo(response);
+        // Ejecuta ambas llamadas a la API en paralelo para mayor eficiencia
+        const [dataSorteo, dataBoletos] = await Promise.all([
+          getSorteoById(id),
+          getBoletosPorSorteo(id)
+        ]);
+        setSorteo(dataSorteo);
+        setBoletosOcupados(dataBoletos);
       } catch (error) {
-        console.error("Error al obtener sorteo:", error);
-        setSorteo({});
+        console.error("Error al obtener los datos del sorteo:", error);
+        setSorteo({}); // Asigna un objeto vacío para evitar errores si la carga falla
       }
     };
-    obtenerSorteo();
-  }, [id]);
+    obtenerDatosCompletos();
+  }, [id]); // Se vuelve a ejecutar si el ID del sorteo cambia
 
-  if (!sorteo) return <p>Cargando sorteo...</p>;
+  // Crea un mapa para buscar rápidamente el estado de un boleto (más eficiente)
+  const boletosEstadoMap = useMemo(() => {
+    const map = {};
+    boletosOcupados.forEach(boleto => {
+      map[boleto.numeroBoleto] = boleto.estado; // Ej: { '15': 'APARTADO', '22': 'COMPRADO' }
+    });
+    return map;
+  }, [boletosOcupados]);
 
-  // Genera los boletos del 1 al máximo
-  const boletos = Array.from(
-    { length: sorteo.cantidadMaximaBoletos },
-    (_, i) => i + 1
-  );
-
-  // Paginación
-  const indiceInicio = (paginaActual - 1) * boletosPorPagina;
-  const boletosPagina = boletos.slice(
-    indiceInicio,
-    indiceInicio + boletosPorPagina
-  );
-  const totalPaginas = Math.ceil(boletos.length / boletosPorPagina);
-
-  // Simular estados de boletos
+  // Función para determinar la clase CSS de un boleto
   const estadoBoleto = (num) => {
-    // Luego se cambia para ver los estaodos reales de los boletos
-    if (boletosSeleccionados.includes(num)) return "seleccionado";
+    if (boletosSeleccionados.includes(num)) {
+      return "seleccionado";
+    }
+    const estadoBackend = boletosEstadoMap[num];
+    if (estadoBackend === 'APARTADO') {
+      return "apartado";
+    }
+    if (estadoBackend === 'COMPRADO') {
+      return "vendido";
+    }
     return "disponible";
   };
 
+  // Función para manejar la selección de boletos por el usuario
   const alternarSeleccion = (num) => {
+    // Impide seleccionar boletos que ya están apartados o vendidos
+    if (boletosEstadoMap[num]) {
+      return;
+    }
     setBoletosSeleccionados((prev) =>
       prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num]
     );
   };
 
+  // Función para llamar a la API y apartar los boletos seleccionados
   const apartarBoletos = () => {
     if (boletosSeleccionados.length === 0) {
       alert("Selecciona al menos un boleto para apartar.");
@@ -68,34 +80,46 @@ const SorteoDetalles = () => {
     }
     const numerosAStrings = boletosSeleccionados.map(String);
 
-    // Llamamos a la API con los números convertidos a strings
     apartarNumeros(sorteo.id, numerosAStrings, token)
       .then((response) => {
         const numerosApartados = response.reservedTickets.map(
           (ticket) => ticket.numeroBoleto
         );
-
-        // Notificación de éxito
         alert(`Boletos apartados exitosamente: ${numerosApartados.join(", ")}`);
+        
+        // Refrescar la lista de boletos ocupados para reflejar los nuevos cambios
+        setBoletosOcupados(prev => [...prev, ...response.reservedTickets]);
         setBoletosSeleccionados([]);
 
-        // Si la API informó que algunos boletos fallaron
         if (response.failedToReserve && response.failedToReserve.length > 0) {
           alert(
-            `Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(
-              ", "
-            )}`
+            `Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(", ")}`
           );
         }
-
       })
       .catch((error) => {
-        // Manejo de Error
         console.error("Error al apartar boletos:", error);
-        // El error.message contendrá el 400 y el mensaje de límite excedido
         alert(`Hubo un error al apartar los boletos: ${error.message}`);
       });
   };
+
+  // Renderizado condicional mientras cargan los datos
+  if (!sorteo) {
+    return (
+      <div className="d-flex">
+        <Sidebar />
+        <div className="flex-grow-1" style={{ marginLeft: "80px", padding: "2rem" }}>
+          <p>Cargando sorteo...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Lógica de paginación
+  const boletos = Array.from({ length: sorteo.cantidadMaximaBoletos }, (_, i) => i + 1);
+  const totalPaginas = Math.ceil(boletos.length / boletosPorPagina);
+  const indiceInicio = (paginaActual - 1) * boletosPorPagina;
+  const boletosPagina = boletos.slice(indiceInicio, indiceInicio + boletosPorPagina);
 
   return (
     <div className="d-flex">
@@ -110,30 +134,17 @@ const SorteoDetalles = () => {
             <p>{sorteo.descripcion}</p>
 
             <div className="d-flex flex-wrap align-items-center justify-content-around mt-3">
-              <img
-                src={sorteo.imagen}
-                alt={sorteo.nombre}
-                className="sorteo-imagen"
-              />
-
+              <img src={sorteo.imagen} alt={sorteo.nombre} className="sorteo-imagen" />
               <div className="sorteo-info mt-3">
-                <p>
-                  <strong>Premio:</strong> {sorteo.premio}
-                </p>
-                <p>
-                  <strong>Costo del boleto:</strong> ${sorteo.precio}
-                </p>
-                <p>
-                  <strong>Fecha final de compra boletos:</strong>{" "}
-                  {sorteo.fechaFinalVentaBoletos}
-                </p>
+                <p><strong>Premio:</strong> {sorteo.premio}</p>
+                <p><strong>Costo del boleto:</strong> ${sorteo.precio}</p>
+                <p><strong>Fecha final de compra boletos:</strong> {sorteo.fechaFinalVentaBoletos}</p>
               </div>
             </div>
           </div>
 
           <div className="boletos-section">
             <h5 className="fw-bold mb-3">Apartar Boletos</h5>
-
             <div className="leyenda mb-3">
               <span className="disponible">Disponibles</span>
               <span className="apartado">Apartados</span>
@@ -147,6 +158,7 @@ const SorteoDetalles = () => {
                   key={num}
                   className={`boleto ${estadoBoleto(num)}`}
                   onClick={() => alternarSeleccion(num)}
+                  disabled={!!boletosEstadoMap[num]}
                 >
                   {num}
                 </button>
@@ -161,9 +173,7 @@ const SorteoDetalles = () => {
               >
                 &lt;
               </button>
-              <span>
-                Página {paginaActual} de {totalPaginas}
-              </span>
+              <span>Página {paginaActual} de {totalPaginas}</span>
               <button
                 className="btn btn-sm btn-outline-secondary mx-2"
                 disabled={paginaActual === totalPaginas}
@@ -174,8 +184,7 @@ const SorteoDetalles = () => {
             </div>
 
             <div className="mt-3">
-              <strong>Boletos seleccionados:</strong>{" "}
-              {boletosSeleccionados.join(", ") || "Ninguno"}
+              <strong>Boletos seleccionados:</strong> {boletosSeleccionados.join(", ") || "Ninguno"}
             </div>
 
             <button
