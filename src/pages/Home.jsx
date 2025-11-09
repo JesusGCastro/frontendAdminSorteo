@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import SorteoCard from "../components/SorteoCard";
-import { fetchSorteos } from "../services/api";
+import { consultarSorteos } from "../services/api";
 import Sidebar from "../components/Sidebar";
 import { getSession } from "../api";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -17,7 +17,7 @@ const Home = () => {
     setUsuario(session.user);
 
     const obtenerSorteos = async () => {
-      const data = await fetchSorteos();
+      const data = await consultarSorteos();
       // para desempacar en caso de que el sorteo venga en array anidado
       const sorteosData = Array.isArray(data[0]) ? data[0] : data;
       setSorteos(sorteosData);

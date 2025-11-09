@@ -1,16 +1,61 @@
-# React + Vite
+# Frontend Admin Sorteo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz web del sistema de administración de sorteos.  
+Desarrollada con *React + Vite, utiliza **Bootstrap* para el diseño y *React Router* para la navegación entre vistas.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+##  Características principales
 
-## React Compiler
+-  Funciones del proyecto de sorteos
+-  Integración con microservicio de autenticación (API Gateway)  
+-  Navegación con HashRouter (compatible con GitHub Pages)  
+-  Diseño responsivo con Bootstrap 5  
+-  Despliegue automático en *GitHub Pages*
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+##  Requisitos previos
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Antes de ejecutar el proyecto, asegúrate de tener instalado:
+
+- [Node.js](https://nodejs.org/) (versión 18 o superior)
+- npm (viene con Node)
+
+Verifica las versiones con:
+bash
+node -v
+npm -v
+
+## Instalación y ejecución en produccion
+
+##Clonar el repositorio
+bash
+git clone https://github.com/jesusgcastro/frontendAdminSorteo.git
+cd frontendAdminSorteo
+
+
+##Instalar dependencias
+bash
+npm install
+
+##Ejecutar el servidor de desarrollo
+bash
+npm run dev
+
+##Construcción para producción
+Para generar la versión optimizada del proyecto:
+bash
+npm run build
+
+Esto crea la carpeta /dist con todos los archivos listos para producción.
+
+##Despliegue en GitHub Pages
+El proyecto está configurado para desplegarse automáticamente en GitHub Pages usando el paquete gh-pages.
+Para hacerlo manualmente:
+bash
+npm run deploy
+
+La página se publicará. 
+
+Tomar en cuenta que se debe de trabajar de la rama "main", ya que al hacer build se generara un archivo dist, posteriormente al hacer deploy se subira automaticamente con github actions en la rama "gh-pages"
