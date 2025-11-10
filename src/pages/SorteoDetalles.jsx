@@ -1,9 +1,28 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { getSorteoById, apartarNumeros, getBoletosPorSorteo } from "../services/api";
+import {
+  getSorteoById,
+  apartarNumeros,
+  getBoletosPorSorteo,
+} from "../services/api";
 import { getToken, verifyToken } from "../api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
+
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  try {
+    const date = new Date(dateString);
+    // Usamos toLocaleDateString para asegurar el formato DD/MM/AAAA
+    return date.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return dateString; // Devuelve la cadena original si falla la conversión
+  }
+};
 
 const SorteoDetalles = () => {
   const { id } = useParams();
@@ -20,7 +39,7 @@ const SorteoDetalles = () => {
         // Ejecuta ambas llamadas a la API en paralelo para mayor eficiencia
         const [dataSorteo, dataBoletos] = await Promise.all([
           getSorteoById(id),
-          getBoletosPorSorteo(id)
+          getBoletosPorSorteo(id),
         ]);
         setSorteo(dataSorteo);
         setBoletosOcupados(dataBoletos);
@@ -35,7 +54,7 @@ const SorteoDetalles = () => {
   // Crea un mapa para buscar rápidamente el estado de un boleto (más eficiente)
   const boletosEstadoMap = useMemo(() => {
     const map = {};
-    boletosOcupados.forEach(boleto => {
+    boletosOcupados.forEach((boleto) => {
       map[boleto.numeroBoleto] = boleto.estado; // Ej: { '15': 'APARTADO', '22': 'COMPRADO' }
     });
     return map;
@@ -47,10 +66,10 @@ const SorteoDetalles = () => {
       return "seleccionado";
     }
     const estadoBackend = boletosEstadoMap[num];
-    if (estadoBackend === 'APARTADO') {
+    if (estadoBackend === "APARTADO") {
       return "apartado";
     }
-    if (estadoBackend === 'COMPRADO') {
+    if (estadoBackend === "COMPRADO") {
       return "vendido";
     }
     return "disponible";
@@ -90,14 +109,16 @@ const SorteoDetalles = () => {
           (ticket) => ticket.numeroBoleto
         );
         alert(`Boletos apartados exitosamente: ${numerosApartados.join(", ")}`);
-        
+
         // Refrescar la lista de boletos ocupados para reflejar los nuevos cambios
-        setBoletosOcupados(prev => [...prev, ...response.reservedTickets]);
+        setBoletosOcupados((prev) => [...prev, ...response.reservedTickets]);
         setBoletosSeleccionados([]);
 
         if (response.failedToReserve && response.failedToReserve.length > 0) {
           alert(
-            `Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(", ")}`
+            `Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(
+              ", "
+            )}`
           );
         }
       })
@@ -112,7 +133,10 @@ const SorteoDetalles = () => {
     return (
       <div className="d-flex">
         <Sidebar />
-        <div className="flex-grow-1" style={{ marginLeft: "80px", padding: "2rem" }}>
+        <div
+          className="flex-grow-1"
+          style={{ marginLeft: "80px", padding: "2rem" }}
+        >
           <p>Cargando sorteo...</p>
         </div>
       </div>
@@ -120,10 +144,16 @@ const SorteoDetalles = () => {
   }
 
   // Lógica de paginación
-  const boletos = Array.from({ length: sorteo.cantidadMaximaBoletos }, (_, i) => i + 1);
+  const boletos = Array.from(
+    { length: sorteo.cantidadMaximaBoletos },
+    (_, i) => i + 1
+  );
   const totalPaginas = Math.ceil(boletos.length / boletosPorPagina);
   const indiceInicio = (paginaActual - 1) * boletosPorPagina;
-  const boletosPagina = boletos.slice(indiceInicio, indiceInicio + boletosPorPagina);
+  const boletosPagina = boletos.slice(
+    indiceInicio,
+    indiceInicio + boletosPorPagina
+  );
 
   return (
     <div className="d-flex">
@@ -138,11 +168,22 @@ const SorteoDetalles = () => {
             <p>{sorteo.descripcion}</p>
 
             <div className="d-flex flex-wrap align-items-center justify-content-around mt-3">
-              <img src={sorteo.imagen} alt={sorteo.nombre} className="sorteo-imagen" />
+              <img
+                src={sorteo.imagen}
+                alt={sorteo.nombre}
+                className="sorteo-imagen"
+              />
               <div className="sorteo-info mt-3">
-                <p><strong>Premio:</strong> {sorteo.premio}</p>
-                <p><strong>Costo del boleto:</strong> ${sorteo.precioBoleto}</p>
-                <p><strong>Fecha final de compra boletos:</strong> {sorteo.fechaFinalVentaBoletos}</p>
+                <p>
+                  <strong>Premio:</strong> {sorteo.premio}
+                </p>
+                <p>
+                  <strong>Costo del boleto:</strong> ${sorteo.precioBoleto}
+                </p>
+                <p>
+                  <strong>Fecha final de compra boletos:</strong>{" "}
+                  {formatDate(sorteo.fechaFinalVentaBoletos)}
+                </p>
               </div>
             </div>
           </div>
@@ -177,7 +218,9 @@ const SorteoDetalles = () => {
               >
                 &lt;
               </button>
-              <span>Página {paginaActual} de {totalPaginas}</span>
+              <span>
+                Página {paginaActual} de {totalPaginas}
+              </span>
               <button
                 className="btn btn-sm btn-outline-secondary mx-2"
                 disabled={paginaActual === totalPaginas}
@@ -188,7 +231,8 @@ const SorteoDetalles = () => {
             </div>
 
             <div className="mt-3">
-              <strong>Boletos seleccionados:</strong> {boletosSeleccionados.join(", ") || "Ninguno"}
+              <strong>Boletos seleccionados:</strong>{" "}
+              {boletosSeleccionados.join(", ") || "Ninguno"}
             </div>
 
             <button
