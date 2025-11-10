@@ -99,12 +99,12 @@
 
 /* Estilo para boletos apartados (amarillo) */
 .boleto.apartado {
-  background-color: #ffc107;
+  background-color: #e37b7b;
   color: #000;
-  border-color: #e6ac00;
+  border-color: #e37b7b;
   cursor: not-allowed;
 }
 .boleto.apartado:hover {
-  background-color: #ffc107;
-  border-color: #e6ac00;
+  background-color: #e37b7b;
+  border-color: #e37b7b;
 }
