@@ -101,7 +101,7 @@ export default function Login() {
         {/* Mensaje de error (solo si existe) */}
         {error && (
           <div
-            className={`alert ${error.startsWith('✅') ? 'alert-success' : 'alert-danger'} text-center py-2`}
+            className={`alert ${error.startsWith('Valido') ? 'alert-success' : 'alert-danger'} text-center py-2`}
             style={{
               fontSize: "0.95rem",
               borderRadius: "0.5rem",

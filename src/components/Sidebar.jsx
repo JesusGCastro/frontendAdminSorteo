@@ -30,24 +30,23 @@ const Sidebar = () => {
     }
   };
 
-  const menuItems = [
-    { nombre: "Sorteos", icono: "bi bi-calendar2-event", ruta: "/" },
-    { nombre: "Boletos", icono: "bi bi-ticket-perforated", ruta: "/boletos" },
+    const menuItems = [
+    { nombre: "Sorteos", icono: "bi bi-calendar2-event", ruta: "/", name: "sorteos" },
+    { nombre: "Boletos", icono: "bi bi-ticket-perforated", ruta: "/boletos", name: "boletos" },
   ];
 
   let bottomItems;
   if (getRolActual() === null) {
     bottomItems = [
-      { nombre: "Perfil", icono: "bi bi-person-circle", ruta: "/login" },
+      { nombre: "Perfil", icono: "bi bi-person-circle", ruta: "/login", name: "profile" },
     ];
   } else {
     bottomItems = [
-      { nombre: "Configuración", icono: "bi bi-gear", ruta: "/config" },
+      { nombre: "Configuración", icono: "bi bi-gear", ruta: "/config", name: "config" },
       ...(getPuedeCambiarRol() === "true"
-        ? [{ nombre: "Switch", icono: "bi bi-arrow-left-right", onClick: handleChange }]
+        ? [{ nombre: "Switch", icono: "bi bi-arrow-left-right", onClick: handleChange, name: "switch" }]
         : []),
-      // Botón de cerrar sesión
-      { nombre: "Cerrar Sesión", icono: "bi bi-box-arrow-left", onClick: handleLogout },
+      { nombre: "Cerrar Sesión", icono: "bi bi-box-arrow-left", onClick: handleLogout, name: "logout" },
     ];
   }
 
@@ -62,6 +61,8 @@ const Sidebar = () => {
               key={i}
               to={item.ruta || "/"}
               className={`sidebar-link ${isActive ? "active" : ""}`}
+              aria-label={item.nombre}
+              data-testid={item.name}
             >
               <div className="icon-container">
                 <i className={`${item.icono} fs-4`} />
@@ -81,6 +82,8 @@ const Sidebar = () => {
               key={i}
               onClick={item.onClick}
               className="sidebar-link btn p-0"
+              aria-label={item.nombre}
+              data-testid={item.name}
             >
               <div className="icon-container">
                 <i className={`${item.icono} fs-4`} />
@@ -91,6 +94,8 @@ const Sidebar = () => {
               key={i}
               to={item.ruta || "/"}
               className={`sidebar-link ${isActive ? "active" : ""}`}
+              aria-label={item.nombre}
+              data-testid={item.name}
             >
               <div className="icon-container">
                 {item.img ? (
@@ -102,7 +107,6 @@ const Sidebar = () => {
             </Link>
           );
         })}
-
       </div>
     </div>
   );

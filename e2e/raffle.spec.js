@@ -48,7 +48,7 @@ test("PAN 4. Ver detalles del sorteo como participante.", async ({ page }) => {
 
 test("PAN 5. Seleccionar y apartar numero.", async ({ page }) => {
   await page.goto("http://localhost:5173/frontendAdminSorteo/");
-  await page.getByRole("link", { name: "" }).nth(1).click();
+  await page.getByTestId('profile').nth(1).click();
   await page.locator('input[type="email"]').click();
   await page.locator('input[type="email"]').fill("carlos@mail.com");
   await page.locator('input[type="password"]').click();
@@ -67,7 +67,7 @@ test("PAN 6. Verificar que número ocupado está deshabilitado", async ({
 }) => {
   // Navegar a la página principal
   await page.goto("http://localhost:5173/frontendAdminSorteo/");
-  await page.getByRole("link", { name: "" }).nth(1).click();
+  await page.getByTestId('profile').nth(1).click();
 
   // Iniciar sesión
   await page.locator('input[type="email"]').fill("reni3@gmail.com");
@@ -98,7 +98,7 @@ test("PAN 8. Apartar numero superando el limite por participante.", async ({
   page,
 }) => {
   await page.goto("http://localhost:5173/frontendAdminSorteo/");
-  await page.getByRole("link", { name: "" }).nth(1).click();
+  await page.getByTestId('profile').nth(1).click();
   await page.locator('input[type="email"]').click();
   await page.locator('input[type="email"]').fill("carlos@mail.com");
   await page.locator('input[type="password"]').click();
