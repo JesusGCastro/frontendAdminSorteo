@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
+
+// import { useParams } from "react-router-dom";
+
+import { useParams, useNavigate } from "react-router-dom"; 
 import {
   getSorteoById,
   apartarNumeros,
@@ -26,6 +29,7 @@ const formatDate = (dateString) => {
 
 const SorteoDetalles = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [sorteo, setSorteo] = useState(null);
   const [boletosOcupados, setBoletosOcupados] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
@@ -86,21 +90,67 @@ const SorteoDetalles = () => {
     );
   };
 
+    //Funcion anterior
+
+      // const apartarBoletos = () => {
+      //   if (boletosSeleccionados.length === 0) {
+      //     alert("Selecciona al menos un boleto para apartar.");
+      //     return;
+      //   }
+      //   const token = getToken();
+      //   //Debug
+      //   console.log("Token:", token);
+      //   if (verifyToken(token) === false) {
+      //     //Debug
+      //     console.error("Token inválido o expirado.");
+      //     window.location.href = "/login";
+      //     return;
+      //   }
+      //   const numerosAStrings = boletosSeleccionados.map(String);
+
+      //   apartarNumeros(sorteo.id, numerosAStrings, token)
+      //     .then((response) => {
+      //       const numerosApartados = response.reservedTickets.map(
+      //         (ticket) => ticket.numeroBoleto
+      //       );
+      //       alert(`Boletos apartados exitosamente: ${numerosApartados.join(", ")}`);
+
+      //       // Refrescar la lista de boletos ocupados para reflejar los nuevos cambios
+      //       setBoletosOcupados((prev) => [...prev, ...response.reservedTickets]);
+      //       setBoletosSeleccionados([]);
+
+      //       if (response.failedToReserve && response.failedToReserve.length > 0) {
+      //         alert(
+      //           `Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(
+      //             ", "
+      //           )}`
+      //         );
+      //       }
+      //     })
+      //     .catch((error) => {
+      //       console.error("Error al apartar boletos:", error);
+      //       alert(`Hubo un error al apartar los boletos: ${error.message}`);
+      //     });
+      // };
+
+
   // Función para llamar a la API y apartar los boletos seleccionados
   const apartarBoletos = () => {
     if (boletosSeleccionados.length === 0) {
-      alert("Selecciona al menos un boleto para apartar.");
+      alert("Por favor, selecciona al menos un boleto para apartar.");
       return;
     }
+
     const token = getToken();
-    //Debug
-    console.log("Token:", token);
-    if (verifyToken(token) === false) {
-      //Debug
-      console.error("Token inválido o expirado.");
-      window.location.href = "/login";
+    
+    // CAMBIO 1: Mensaje interactivo para cuando no hay sesión iniciada
+    if (!token) { 
+      if (window.confirm("Para apartar boletos, necesitas iniciar sesión. ¿Deseas ir a la página de inicio de sesión ahora?")) {
+        navigate("/login"); // Redirige al usuario a la página de login
+      }
       return;
     }
+
     const numerosAStrings = boletosSeleccionados.map(String);
 
     apartarNumeros(sorteo.id, numerosAStrings, token)
@@ -109,24 +159,23 @@ const SorteoDetalles = () => {
           (ticket) => ticket.numeroBoleto
         );
         alert(`Boletos apartados exitosamente: ${numerosApartados.join(", ")}`);
-
-        // Refrescar la lista de boletos ocupados para reflejar los nuevos cambios
+        
         setBoletosOcupados((prev) => [...prev, ...response.reservedTickets]);
         setBoletosSeleccionados([]);
 
         if (response.failedToReserve && response.failedToReserve.length > 0) {
           alert(
-            `Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(
-              ", "
-            )}`
+            `Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(", ")}`
           );
         }
       })
       .catch((error) => {
+        // Mensaje de error mejorado.
         console.error("Error al apartar boletos:", error);
-        alert(`Hubo un error al apartar los boletos: ${error.message}`);
+        alert(`Error: ${error.message}`); 
       });
   };
+
 
   // Renderizado condicional mientras cargan los datos
   if (!sorteo) {
