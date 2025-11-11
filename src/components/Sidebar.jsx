@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { clearSession, getPuedeCambiarRol, setRolActual, getRolActual } from "../api";
+import { clearSession, getPuedeCambiarRol, setRolActual, getRolActual } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 

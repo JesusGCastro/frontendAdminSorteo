@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
-import { loginUser, getUserProfile, saveSession, setPuedeCambiarRol, setRolActual } from "../api";
+import { loginUser, getUserProfile, saveSession, setPuedeCambiarRol, setRolActual } from "../services/api";
 
 export default function Login() {
   const [passwordShown, setPasswordShown] = useState(false);

@@ -8,7 +8,7 @@ import {
   apartarNumeros,
   getBoletosPorSorteo,
 } from "../services/api";
-import { getToken, verifyToken } from "../api";
+import { getToken, verifyToken } from "../services/api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
 

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
-import { registerUser } from "../api";
+import { registerUser } from "../services/api";
 
 const CustomButton = ({ children, buttonBgColor, buttonHoverBgColor, ...props }) => (
   <button
