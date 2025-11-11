@@ -2,13 +2,15 @@ import React, { useEffect, useState } from "react";
 import SorteoCard from "../components/SorteoCard";
 import { consultarSorteos } from "../services/api";
 import Sidebar from "../components/Sidebar";
-import { getSession } from "../api";
+import { getSession, getRolActual } from "../api";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [sorteos, setSorteos] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [usuario, setUsuario] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Obtener sesión actual
@@ -55,6 +57,12 @@ const Home = () => {
   // Mostrar nombre o "Invitado"
   const nombreUsuario = usuario?.nombre || "Invitado";
 
+  const esSorteador = getRolActual() === "sorteador";
+
+  const handleCrearSorteo = () =>{
+      navigate("/crear-sorteo");
+  };
+
   return (
     <div className="d-flex">
       {/* Sidebar */}
@@ -76,8 +84,27 @@ const Home = () => {
             {nombreUsuario}
           </p>
 
-          {/* Título */}
-          <h4 className="fw-bold mb-3">Sorteos disponibles</h4>
+          {/* Encabezado con titulo y boton */}
+          <div className="d-flex justify-content-between align-items-center mb-3">            
+            <h4 className="fw-bold mb-0">Sorteos disponibles</h4>
+
+            {/* El boton solo visible para sorteadores */}
+            {esSorteador && (
+              <button className="btn d-flex align-items-center gap-2 px-4 py-2"
+                onClick={handleCrearSorteo}
+                style={{
+                  backgroundColor: "#D1AAD3",
+                  color: "black",
+                  borderRadius: "25px",
+                  fontWeight: "600",
+                  border: "none",
+                }}
+              >
+                <i className="bi bi-plus-circle"></i>
+                Crear Sorteo
+              </button>
+            )}
+          </div>
 
           {/* Barra de búsqueda */}
           <div className="input-group mb-4" style={{ maxWidth: "1300px" }}>
