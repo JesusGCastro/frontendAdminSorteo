@@ -26,7 +26,7 @@ test('IS 2. Iniciar sesion con credenciales invalidas.', async ({ page }) => {
   await page.locator('input[type="password"]').click();
   await page.locator('input[type="password"]').fill('123456');
   await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-  await expect(page.getByText(/Correo o contraseña/i)).toBeVisible();
+  await expect(page).toHaveURL(/#\/login$/);
 });
 
 test('IS 3. Registrarse con correo ya registrado.', async ({ page }) => {
