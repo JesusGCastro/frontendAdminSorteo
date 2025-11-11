@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('IS 1. Iniciar sesion con credenciales validas.', async ({ page }) => {
   // Abrimos la pagina y seleccionamos el boton de login
-  await page.goto('http://localhost:5173/frontendAdminSorteo/#/');
+  await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
 
   // Rellenamos el formulario de login y accedemos a la cuenta;
@@ -18,7 +18,7 @@ test('IS 1. Iniciar sesion con credenciales validas.', async ({ page }) => {
 
 test('IS 2. Iniciar sesion con credenciales invalidas.', async ({ page }) => {
   // Abrimos la pagina y seleccionamos el boton de login
-  await page.goto('http://localhost:5173/frontendAdminSorteo/#/');
+  await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
   // Rellenamos el formulario de login con credenciales invalidas
   await page.locator('input[type="email"]').click();
@@ -31,7 +31,7 @@ test('IS 2. Iniciar sesion con credenciales invalidas.', async ({ page }) => {
 
 test('IS 3. Registrarse con correo ya registrado.', async ({ page }) => {
   // Abrimos la pagina y seleccionamos el boton de registrarse
-  await page.goto('http://localhost:5173/frontendAdminSorteo/#/');
+  await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
   await page.getByRole('link', { name: 'Regístrate' }).click();
 
@@ -56,7 +56,7 @@ test('IS 4. Registrarse con credenciales validas.', async ({ page }) => {
   const randomEmail = `test${Date.now()}@gmail.com`;
 
   // Abrimos la pagina y seleccionamos el boton de registrarse
-  await page.goto('http://localhost:5173/frontendAdminSorteo/#/');
+  await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
   await page.getByRole('link', { name: 'Regístrate' }).click();
 
@@ -77,7 +77,7 @@ test('IS 4. Registrarse con credenciales validas.', async ({ page }) => {
 
 // Prueba 5: IS 5. Participante no ve boton iniciar sesion				
 test('IS 5. Participante no ve boton iniciar sesion', async ({ page }) => {
-  await page.goto('http://localhost:5173/frontendAdminSorteo/');
+  await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
   await page.locator('input[type="email"]').click();
   await page.locator('input[type="email"]').fill('carlos@mail.com');
@@ -90,7 +90,7 @@ test('IS 5. Participante no ve boton iniciar sesion', async ({ page }) => {
 
 // Prueba 6: IS 6. Invitado no puede ver la configuración ni cambiar de cuenta.		
 test('IS 6. Invitado no puede ver la configuración ni cambiar de cuenta.', async ({ page }) => {
-  await page.goto('http://localhost:5173/frontendAdminSorteo/');
+  await page.goto('/');
   await expect(page.getByText('Invitado')).toBeVisible();
   await expect(page.getByRole('button', { name: 'config' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'switch' })).toHaveCount(0);
@@ -98,7 +98,7 @@ test('IS 6. Invitado no puede ver la configuración ni cambiar de cuenta.', asyn
 
 // Prueba 7: IS 7. Participante no puede cambiar de cuenta.	
 test('IS 7. Participante no puede cambiar de cuenta.', async ({ page }) => {
-  await page.goto('http://localhost:5173/frontendAdminSorteo/');
+  await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
   await page.locator('input[type="email"]').click();
   await page.locator('input[type="email"]').fill('carlos@mail.com');
@@ -111,7 +111,7 @@ test('IS 7. Participante no puede cambiar de cuenta.', async ({ page }) => {
 
 // Prueba 8: IS 8. Sorteador cambia a vista de participante y de vuelta.			
 test('IS 8. Sorteador cambia a vista de participante y de vuelta.', async ({ page }) => {
-  await page.goto('http://localhost:5173/frontendAdminSorteo/');
+  await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
   await page.locator('input[type="email"]').click();
   await page.locator('input[type="email"]').fill('sorteador3@mail.com');

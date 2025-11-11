@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test("PAN 1. Mostrar sorteos de inicio.", async ({ page }) => {
   // Abrimos la pagina principal
-  await page.goto("http://localhost:5173/frontendAdminSorteo/");
+  await page.goto('/');
   // Comprobamos que se muestran los sorteos
   await expect(
     page.getByText("Gran Sorteo BETO 2025$150.00Navidad$")
@@ -11,7 +11,7 @@ test("PAN 1. Mostrar sorteos de inicio.", async ({ page }) => {
 
 test("PAN 2. Busqueda de sorteos por filtro.", async ({ page }) => {
   // Abrimos la pagina principal
-  await page.goto("http://localhost:5173/frontendAdminSorteo/");
+  await page.goto('/');
   // Rellenamos el campo de busqueda y comprobamos que se muestran los sorteos filtrados
   await page.getByRole("textbox", { name: "Buscar sorteo" }).click();
   await page.getByRole("textbox", { name: "Buscar sorteo" }).fill("navidad");
@@ -29,7 +29,7 @@ test("PAN 2. Busqueda de sorteos por filtro.", async ({ page }) => {
 
 test("PAN 3. Busqueda de sorteos sin sorteos.", async ({ page }) => {
   // Abrimos la pagina principal
-  await page.goto("http://localhost:5173/frontendAdminSorteo/");
+  await page.goto('/');
   // Rellenamos el campo de busqueda con un texto que no existe y comprobamos que se muestra el mensaje de no se encontraron sorteos
   await page.getByRole("textbox", { name: "Buscar sorteo" }).click();
   await page.getByRole("textbox", { name: "Buscar sorteo" }).fill("pascua");
@@ -39,7 +39,7 @@ test("PAN 3. Busqueda de sorteos sin sorteos.", async ({ page }) => {
 
 test("PAN 4. Ver detalles del sorteo como participante.", async ({ page }) => {
   // Abrimos la pagina principal
-  await page.goto("http://localhost:5173/frontendAdminSorteo/");
+  await page.goto('/');
   // Hacemos click en un sorteo y comprobamos que se muestra la descripcion
   await page.getByRole("img", { name: "Navidad" }).click();
   // Comprobamos que se muestra la descripcion del sorteo
@@ -66,7 +66,7 @@ test("PAN 6. Verificar que número ocupado está deshabilitado", async ({
   page,
 }) => {
   // Navegar a la página principal
-  await page.goto("http://localhost:5173/frontendAdminSorteo/");
+  await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
 
   // Iniciar sesión
@@ -84,7 +84,7 @@ test("PAN 6. Verificar que número ocupado está deshabilitado", async ({
 });
 
 test("PAN 7. Apartar numero sin cuenta.", async ({ page }) => {
-  await page.goto("http://localhost:5173/frontendAdminSorteo/");
+  await page.goto('/');
   await page.getByRole("img", { name: "Navidad" }).click();
   await page.getByRole("button", { name: "52" }).click();
   page.once("dialog", (dialog) => {
@@ -97,7 +97,7 @@ test("PAN 7. Apartar numero sin cuenta.", async ({ page }) => {
 test("PAN 8. Apartar numero superando el limite por participante.", async ({
   page,
 }) => {
-  await page.goto("http://localhost:5173/frontendAdminSorteo/");
+  await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
   await page.locator('input[type="email"]').click();
   await page.locator('input[type="email"]').fill("carlos@mail.com");
