@@ -6,9 +6,14 @@ import { getSession } from "../api";
 const CrearSorteo = () => {
   const navigate = useNavigate();
   const session = getSession();
-  const nombreUsuario = session?.user?.nombre || "Sorteador Anonimo";
+  
+  // Mostrar nombre o "Sorteador Anonimo"
+    const nombreUsuario = session?.user?.nombre || "Sorteador Anonimo";
+    const rolActual = "sorteador";
+    const rolFormateado =
+        rolActual.charAt(0).toUpperCase() + rolActual.slice(1).toLowerCase();
 
-  const [formData, setFormData] = useState({ // TODO: Cambiar dependiendo de la BD
+  const [formData, setFormData] = useState({ 
     nombreRifa: "",
     premio: "",
     descripcion: "",
@@ -64,7 +69,7 @@ const CrearSorteo = () => {
               marginBottom: "0.5rem",
             }}
           >
-            {nombreUsuario}
+            {`${nombreUsuario} / ${rolFormateado}`}
           </p>
 
           {/* Título */}
@@ -277,7 +282,8 @@ const CrearSorteo = () => {
                   style={{ 
                     backgroundColor: "#f3e5f5", 
                     borderRadius: "10px",
-                    padding: "12px 16px"
+                    padding: "12px 16px",
+                    width: "100px"
                   }}
                   value={formData.limiteApartados}
                   onChange={handleInputChange}

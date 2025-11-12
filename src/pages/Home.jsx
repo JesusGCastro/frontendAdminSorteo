@@ -10,6 +10,7 @@ const Home = () => {
   const [sorteos, setSorteos] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [usuario, setUsuario] = useState(null);
+  const [estadoFiltro, setEstadoFiltro] = useState("activo");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,13 +22,13 @@ const Home = () => {
     const obtenerSorteos = async () => {
       try {
 
-        
+
         const data = await consultarSorteos();
-        
-        // 3. Lógica defensiva para desempacar el array (como preguntaste)
+
+        // 3. Lógica defensiva para desempacar el array
         // (Asegurarse que data exista antes de acceder a data[0])
         const sorteosData = data && Array.isArray(data[0]) ? data[0] : data;
-        
+
         // 4. Asegurarnos que siempre seteamos un array
         setSorteos(Array.isArray(sorteosData) ? sorteosData : []);
 
@@ -36,31 +37,34 @@ const Home = () => {
         console.error("Error al cargar sorteos:", err);
         console.log(err.message); // Guardar el error para mostrarlo al usuario
       } finally {
-        // 6. SOLUCIÓN PUNTO 2: Indicar que la carga terminó (ya sea con éxito o error)
+        // 6. SOLUCIÓN PUNTO 2: Indicar que la carga terminó
         console.log("Intento de carga de sorteos finalizado.");
       }
     };
 
     // 7. Llamar a la función
     obtenerSorteos();
-    
+
   }, []);
 
   // Filtrar por estado activo y por nombre
   const sorteosFiltrados = (sorteos || []).filter(
-    // Asegura que 'sorteos' sea un array
     (s) =>
-      s.estado === "activo" &&
-      (s.nombre || "").toLowerCase().includes(filtro.toLowerCase()) // Defensa contra nombre nulo
+      s.estado === estadoFiltro &&
+      (s.nombre || "").toLowerCase().includes(filtro.toLowerCase())
   );
 
   // Mostrar nombre o "Invitado"
   const nombreUsuario = usuario?.nombre || "Invitado";
+  const rolActual = getRolActual() || "participante"; // si no hay rol, por defecto participante
+  const rolFormateado =
+    rolActual.charAt(0).toUpperCase() + rolActual.slice(1).toLowerCase();
+
 
   const esSorteador = getRolActual() === "sorteador";
 
-  const handleCrearSorteo = () =>{
-      navigate("/crear-sorteo");
+  const handleCrearSorteo = () => {
+    navigate("/crear-sorteo");
   };
 
   return (
@@ -81,11 +85,11 @@ const Home = () => {
               marginBottom: "0.5rem",
             }}
           >
-            {nombreUsuario}
+            {`${nombreUsuario} / ${rolFormateado}`}
           </p>
 
           {/* Encabezado con titulo y boton */}
-          <div className="d-flex justify-content-between align-items-center mb-3">            
+          <div className="d-flex justify-content-between align-items-center mb-3">
             <h4 className="fw-bold mb-0">Sorteos disponibles</h4>
 
             {/* El boton solo visible para sorteadores */}
@@ -126,6 +130,27 @@ const Home = () => {
             >
               <i className="bi bi-search"></i>
             </span>
+          </div>
+
+          {/* Botones de filtro por estado */}
+          <div className="d-flex gap-2 mb-4">
+            {["activo", "inactivo", "terminado"].map((estado) => (
+              <button
+                key={estado}
+                className={`btn ${estadoFiltro === estado ? "text-white" : "text-dark"
+                  }`}
+                style={{
+                  backgroundColor:
+                    estadoFiltro === estado ? "#DAA1ED" : "#F1DEF7",
+                  fontWeight: "600",
+                  borderRadius: "25px",
+                  border: "none",
+                }}
+                onClick={() => setEstadoFiltro(estado)}
+              >
+                {estado.toUpperCase()}
+              </button>
+            ))}
           </div>
 
           {/* Tarjetas de sorteos */}

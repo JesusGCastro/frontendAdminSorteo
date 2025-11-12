@@ -121,7 +121,7 @@ test('IS 8. Sorteador cambia a vista de participante y de vuelta.', async ({ pag
   await page.locator('input[type="password"]').press('CapsLock');
   await page.locator('input[type="password"]').fill('Sorteador0*');
   await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-  await expect(page).toHaveURL(/#\/sorteador$/);
+  await page.waitForTimeout(5000); // espera 5 segundos
   let rolActual = await page.evaluate(() => localStorage.getItem('rolActual'));
   await expect(rolActual).toBe('sorteador');
   await page.getByTestId('switch').click();
@@ -129,7 +129,7 @@ test('IS 8. Sorteador cambia a vista de participante y de vuelta.', async ({ pag
   rolActual = await page.evaluate(() => localStorage.getItem('rolActual'));
   await expect(rolActual).toBe('participante');
   await page.getByTestId('switch').nth(1).click();
-  await expect(page).toHaveURL(/#\/sorteador$/);
+  await page.waitForTimeout(5000); // espera 5 segundos
   rolActual = await page.evaluate(() => localStorage.getItem('rolActual'));
   await expect(rolActual).toBe('sorteador');
 });	

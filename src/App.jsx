@@ -8,6 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import SorteoDetalles from "./pages/SorteoDetalles";
 import CrearSorteo from "./pages/CrearSorteo";
+import EditarSorteo from "./pages/EditarSorteo";
 
 function App() {
   return (
@@ -25,6 +26,8 @@ function App() {
           <Route path="/sorteos/:id" element={<SorteoDetalles />} />
           {/* Página para crear un nuevo sorteo */}
           <Route path="/crear-sorteo" element={<CrearSorteo />} />
+          {/* Página para editar un sorteo */}
+          <Route path="/edicionSorteos/:id" element={<EditarSorteo />} />
         </Routes>
       </div>
     </div>

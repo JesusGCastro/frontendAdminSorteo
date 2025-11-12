@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { getRolActual } from "../api";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./SorteoCard.css";
 
@@ -7,7 +8,13 @@ const SorteoCard = ({ sorteo }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/sorteos/${sorteo.id}`, sorteo);
+    const rol = getRolActual();
+
+    if (rol === "sorteador") {
+      navigate(`/edicionSorteos/${sorteo.id}`, { state: sorteo });
+    } else {
+      navigate(`/sorteos/${sorteo.id}`, { state: sorteo });
+    }
   };
 
   return (

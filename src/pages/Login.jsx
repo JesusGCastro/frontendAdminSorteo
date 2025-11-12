@@ -29,7 +29,7 @@ export default function Login() {
           console.log("Rol actual:", userData.rol);
           setPuedeCambiarRol("true");
           setRolActual("sorteador");
-          navigate("/sorteador", { replace: true });
+          navigate("/", { replace: true });
           return;
 
         } else if (userData.rol === "participante") {

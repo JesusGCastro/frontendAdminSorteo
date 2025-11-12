@@ -26,13 +26,13 @@ const Sidebar = () => {
       navigate("/");
     } else {
       setRolActual("sorteador");
-      navigate("/sorteador");
+      navigate("/");
     }
   };
 
     const menuItems = [
     { nombre: "Sorteos", icono: "bi bi-calendar2-event", ruta: "/", name: "sorteos" },
-    { nombre: "Boletos", icono: "bi bi-ticket-perforated", ruta: "/boletos", name: "boletos" },
+    //{ nombre: "Boletos", icono: "bi bi-ticket-perforated", ruta: "/boletos", name: "boletos" },
   ];
 
   let bottomItems;
