@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import SorteoDetalles from "./pages/SorteoDetalles";
+import CrearSorteo from "./pages/CrearSorteo";
 
 function App() {
   return (
@@ -22,6 +23,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           {/* Página de detalles del sorteo */}
           <Route path="/sorteos/:id" element={<SorteoDetalles />} />
+          {/* Página para crear un nuevo sorteo */}
+          <Route path="/crear-sorteo" element={<CrearSorteo />} />
         </Routes>
       </div>
     </div>
