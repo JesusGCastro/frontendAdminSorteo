@@ -5,39 +5,54 @@ const RAFFLES_PATH = "api/raffles";
 // Métodos para manejar sorteos
 
 // Crear sorteo
-export const crearSorteo = async (sorteoData, token) => {
-  const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, { 
+// export const crearSorteo = async (sorteoData, token) => {
+//   const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, { 
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       "Authorization": `Bearer ${token}`,
+//     },
+//     body: JSON.stringify(sorteoData),
+//   });
+//   if (!res.ok) {
+//     throw new Error(`Error al crear sorteo: ${res.status}`);
+//   }
+//   const data = await res.json();
+//   return data;
+// }
+
+export const crearSorteo = async (formData, token) => {
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`,
     },
-    body: JSON.stringify(sorteoData),
+    body: formData, // Se envía el objeto FormData directamente.
   });
-  if (!res.ok) {
-    throw new Error(`Error al crear sorteo: ${res.status}`);
-  }
-  const data = await res.json();
-  return data;
+}
+if (!res.ok) {
+  // Manejo de errores mejorado para obtener el mensaje del backend.
+  const errorData = await res.json().catch(() => ({ error: `Error HTTP: ${res.status}` }));
+  throw new Error(errorData.error || `Error al crear sorteo: ${res.status}`);
 }
 
 // Consultar sorteos
 export const consultarSorteos = async () => {
-    const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, { 
-      method: "GET",
-    });
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, {
+    method: "GET",
+  });
 
-    if (!res.ok) {
-      throw new Error(`Error al consultar sorteos: ${res.status}`);
-    }
+  if (!res.ok) {
+    throw new Error(`Error al consultar sorteos: ${res.status}`);
+  }
 
-    const data = await res.json();
-    return data;
+  const data = await res.json();
+  return data;
 };
 
 // Obtener sorteo por ID
 export const getSorteoById = async (id) => {
-  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${id}`, { 
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${id}`, {
     method: "GET",
   });
   if (!res.ok) {
@@ -49,23 +64,23 @@ export const getSorteoById = async (id) => {
 
 // Apartar números para un sorteo
 
-  // Funcion anterior
-    // export const apartarNumeros = async (sorteoId, numeros, token) => {
-    //   const bodyData = { numerosBoletos: numeros };
-    //   const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${sorteoId}/tickets`, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       "Authorization": `Bearer ${token}`,
-    //     },
-    //     body: JSON.stringify(bodyData),
-    //   });
-    //   if (!res.ok) {
-    //     throw new Error(`Error al apartar números: ${res.status}`);
-    //   }
-    //   const data = await res.json();
-    //   return data;
-    // }
+// Funcion anterior
+// export const apartarNumeros = async (sorteoId, numeros, token) => {
+//   const bodyData = { numerosBoletos: numeros };
+//   const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${sorteoId}/tickets`, {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       "Authorization": `Bearer ${token}`,
+//     },
+//     body: JSON.stringify(bodyData),
+//   });
+//   if (!res.ok) {
+//     throw new Error(`Error al apartar números: ${res.status}`);
+//   }
+//   const data = await res.json();
+//   return data;
+// }
 export const apartarNumeros = async (sorteoId, numeros, token) => {
   const bodyData = { numerosBoletos: numeros };
   const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${sorteoId}/tickets`, {
@@ -79,7 +94,7 @@ export const apartarNumeros = async (sorteoId, numeros, token) => {
 
   if (!res.ok) {
     const errorData = await res.json();
-    
+
     throw new Error(errorData.error || `Error ${res.status}: No se pudieron apartar los números.`);
   }
 
