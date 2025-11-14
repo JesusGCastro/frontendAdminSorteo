@@ -27,14 +27,17 @@ export const crearSorteo = async (formData, token) => {
     headers: {
       "Authorization": `Bearer ${token}`,
     },
-    body: formData, // Se envía el objeto FormData directamente.
+    body: formData,
   });
-}
-if (!res.ok) {
-  // Manejo de errores mejorado para obtener el mensaje del backend.
-  const errorData = await res.json().catch(() => ({ error: `Error HTTP: ${res.status}` }));
-  throw new Error(errorData.error || `Error al crear sorteo: ${res.status}`);
-}
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: `Error HTTP: ${res.status}` }));
+    throw new Error(errorData.error || `Error al crear sorteo: ${res.status}`);
+  }
+
+  // DEBES retornar la respuesta para que el componente sepa que tuvo éxito
+  return res.json(); 
+};
 
 // Consultar sorteos
 export const consultarSorteos = async () => {
