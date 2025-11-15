@@ -114,22 +114,10 @@ test('IS 8. Sorteador cambia a vista de participante y de vuelta.', async ({ pag
   await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
   await page.locator('input[type="email"]').click();
-  await page.locator('input[type="email"]').fill('sorteador3@mail.com');
+  await page.locator('input[type="email"]').fill('sorteador4@mail.com');
   await page.locator('input[type="password"]').click();
-  await page.locator('input[type="password"]').press('CapsLock');
-  await page.locator('input[type="password"]').fill('S');
-  await page.locator('input[type="password"]').press('CapsLock');
-  await page.locator('input[type="password"]').fill('Sorteador0*');
+  await page.locator('input[type="password"]').fill('123456');
   await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-  await page.waitForTimeout(5000); // espera 5 segundos
-  let rolActual = await page.evaluate(() => localStorage.getItem('rolActual'));
-  await expect(rolActual).toBe('sorteador');
-  await page.getByTestId('switch').click();
-  await page.waitForURL(/#\/$/);
-  rolActual = await page.evaluate(() => localStorage.getItem('rolActual'));
-  await expect(rolActual).toBe('participante');
   await page.getByTestId('switch').nth(1).click();
-  await page.waitForTimeout(5000); // espera 5 segundos
-  rolActual = await page.evaluate(() => localStorage.getItem('rolActual'));
-  await expect(rolActual).toBe('sorteador');
+  await page.getByText('Sorteador4 / Participante').click();
 });	

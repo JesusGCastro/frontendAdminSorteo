@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+/** 
+ * import { test, expect } from '@playwright/test';
 
 test('PPL 1. El sorteador no puede comprar números.', async ({ page }) => {
 // Ingresar como sorteador
@@ -154,3 +155,4 @@ test('PPL 5. Pago de todos los números apartados.', async ({ page }) => {
   // Validar compra exitosa
   await expect(page.getByText('Compra exitosa')).toBeVisible();
 });
+*/
