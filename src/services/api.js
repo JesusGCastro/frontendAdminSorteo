@@ -1,27 +1,28 @@
 // src/api.js
 const API_URL = "https://apigatewaysorteos.onrender.com";
 const RAFFLES_PATH = "api/raffles";
+const IMGBB_API_KEY= "b234eceb83416a07c80c0d0397f718ad"
 
 // Métodos para manejar sorteos
 
 // Crear sorteo
-// export const crearSorteo = async (sorteoData, token) => {
-//   const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, { 
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//       "Authorization": `Bearer ${token}`,
-//     },
-//     body: JSON.stringify(sorteoData),
-//   });
-//   if (!res.ok) {
-//     throw new Error(`Error al crear sorteo: ${res.status}`);
-//   }
-//   const data = await res.json();
-//   return data;
-// }
+ export const crearSorteo = async (sorteoData, token) => {
+   const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, { 
+     method: "POST",
+     headers: {
+       "Content-Type": "application/json",
+       "Authorization": `Bearer ${token}`,
+     },
+     body: JSON.stringify(sorteoData),
+   });
+   if (!res.ok) {
+     throw new Error(`Error al crear sorteo: ${res.status}`);
+   }
+   const data = await res.json();
+   return data;
+ }
 
-export const crearSorteo = async (formData, token) => {
+/*export const crearSorteo = async (formData, token) => {
   const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, {
     method: "POST",
     headers: {
@@ -37,7 +38,7 @@ export const crearSorteo = async (formData, token) => {
 
   // DEBES retornar la respuesta para que el componente sepa que tuvo éxito
   return res.json(); 
-};
+};*/
 
 // Consultar sorteos
 export const consultarSorteos = async () => {
@@ -329,5 +330,25 @@ export const getUserProfile = async (token) => {
     throw err;
   }
 };
+
+// Subir imagen a Imgbb
+export const subirImagenImgbb = async (imagenBase64) => {
+  const formData = new FormData();
+  formData.append("image", imagenBase64);
+
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al subir imagen a Imgbb");
+  }
+
+  const data = await res.json();
+  return data.data.url; // <- URL final que vas a guardar en tu BD
+};
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////

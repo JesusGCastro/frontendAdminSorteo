@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
-import { getSession, getToken, crearSorteo } from "../services/api";
+import { getSession, getToken, crearSorteo, subirImagenImgbb } from "../services/api";
 import { toast } from 'react-toastify';
+import { convertirImagenABase64 } from "../utils/utils";
 
 
 const CrearSorteo = () => {
@@ -55,31 +56,40 @@ const CrearSorteo = () => {
     
     setCargando(true);
 
-    const dataParaEnviar = new FormData();
-    for (const key in formData) {
-      dataParaEnviar.append(key, formData[key]);
-    }
-    dataParaEnviar.append('urlImagen', imagenArchivo);
 
     try {
-      const token = getToken();
-      if (!token) {
-        toast.error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
-        navigate('/login');
-        return;
-      }
-      
-      await crearSorteo(dataParaEnviar, token);
-      
-      toast.success("¡Sorteo creado exitosamente!");
-      navigate('/');
-      
-    } catch (error) {
-      toast.error(`Error al crear el sorteo: ${error.message}`);
-    } finally {
-      setCargando(false);
+    // 1. Convertir imagen a Base64
+    const base64 = await convertirImagenABase64(imagenArchivo);
+
+    // 2. Subir Base64 a Imgbb → obtener URL
+    const urlImagen = await subirImagenImgbb(base64);
+
+    // 3. Preparar datos a enviar a tu microservicio
+    const dataParaEnviar = {
+      ...formData,
+      urlImagen: urlImagen  // 👈 ESTA ES LA URL QUE GUARDA LA BD
+    };
+
+    // 4. Obtener token
+    const token = getToken();
+    if (!token) {
+      toast.error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
+      navigate('/login');
+      return;
     }
-  };
+
+    // 5. Llamar a tu microservicio
+    await crearSorteo(dataParaEnviar, token);
+
+    toast.success("¡Sorteo creado exitosamente!");
+    navigate('/');
+
+  } catch (error) {
+    toast.error(`Error al crear el sorteo: ${error.message}`);
+  } finally {
+    setCargando(false);
+  }
+};
 
   return (
     <div className="d-flex">
