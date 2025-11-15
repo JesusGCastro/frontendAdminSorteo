@@ -24,7 +24,7 @@ const SorteoCard = ({ sorteo }) => {
       style={{ cursor: "pointer" }}
     >
       <img
-        src={sorteo.imagen}
+        src={sorteo.urlImagen}
         alt={sorteo.nombre}
         className="card-img-top p-3"
       />
