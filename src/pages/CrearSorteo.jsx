@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
-import { getSession, getToken, crearSorteo, subirImagenImgbb } from "../services/api";
+import { getSession, getToken, crearSorteo, uploadImageToCloudinary} from "../services/api";
 import { toast } from 'react-toastify';
-import { convertirImagenABase64 } from "../utils/utils";
 
 
 const CrearSorteo = () => {
@@ -49,46 +48,41 @@ const CrearSorteo = () => {
 
 
   const handleCrearSorteo = async () => {
+    // Aseguramos que el estado 'imagenArchivo' contenga el objeto File
     if (!imagenArchivo) {
-      toast.error("Por favor, selecciona una imagen para el sorteo.");
-      return;
+        toast.error("Por favor, selecciona una imagen para el sorteo.");
+        return;
     }
     
     setCargando(true);
 
-
     try {
-    // 1. Convertir imagen a Base64
-    const base64 = await convertirImagenABase64(imagenArchivo);
+        const token = getToken();
+        if (!token) {
+            toast.error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
+            navigate('/login');
+            return;
+        }
 
-    // 2. Subir Base64 a Imgbb → obtener URL
-    const urlImagen = await subirImagenImgbb(base64);
+        const urlImagen = await uploadImageToCloudinary(imagenArchivo); 
 
-    // 3. Preparar datos a enviar a tu microservicio
-    const dataParaEnviar = {
-      ...formData,
-      urlImagen: urlImagen  // 👈 ESTA ES LA URL QUE GUARDA LA BD
-    };
+        const dataParaEnviar = {
+            ...formData, 
+            urlImagen: urlImagen 
+        };
 
-    // 4. Obtener token
-    const token = getToken();
-    if (!token) {
-      toast.error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
-      navigate('/login');
-      return;
+        await crearSorteo(dataParaEnviar, token);
+
+        toast.success("¡Sorteo creado exitosamente!");
+        navigate('/');
+
+    } catch (error) {
+
+        const errorMessage = error.message || "Error desconocido al crear el sorteo.";
+        toast.error(`Error al crear el sorteo: ${errorMessage}`);
+    } finally {
+        setCargando(false);
     }
-
-    // 5. Llamar a tu microservicio
-    await crearSorteo(dataParaEnviar, token);
-
-    toast.success("¡Sorteo creado exitosamente!");
-    navigate('/');
-
-  } catch (error) {
-    toast.error(`Error al crear el sorteo: ${error.message}`);
-  } finally {
-    setCargando(false);
-  }
 };
 
   return (

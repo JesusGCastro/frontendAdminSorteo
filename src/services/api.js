@@ -2,6 +2,8 @@
 const API_URL = "https://apigatewaysorteos.onrender.com";
 const RAFFLES_PATH = "api/raffles";
 const IMGBB_API_KEY= "b234eceb83416a07c80c0d0397f718ad"
+const CLOUDINARY_CLOUD_NAME = "dtejuoctt" ;
+const CLOUDINARY_UPLOAD_PRESET = "sorteos"; 
 
 // Métodos para manejar sorteos
 
@@ -332,7 +334,7 @@ export const getUserProfile = async (token) => {
 };
 
 // Subir imagen a Imgbb
-export const subirImagenImgbb = async (imagenBase64) => {
+/*export const subirImagenImgbb = async (imagenBase64) => {
   const formData = new FormData();
   formData.append("image", imagenBase64);
 
@@ -347,8 +349,46 @@ export const subirImagenImgbb = async (imagenBase64) => {
 
   const data = await res.json();
   return data.data.url; // <- URL final que vas a guardar en tu BD
+};*/
+
+export const uploadImageToCloudinary = async (file) => {
+    if (!file) throw new Error("Archivo de imagen no proporcionado.");
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    
+    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+    try {
+        const res = await fetch(cloudinaryUrl, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(`Error al subir imagen a Cloudinary: ${error.error.message}`);
+        }
+
+        const data = await res.json();
+        return data.secure_url;
+        
+    } catch (error) {
+        console.error("Fallo la subida a Cloudinary:", error);
+        throw error;
+    }
 };
 
+export const crearSorteoConImagen = async (sorteoData, imageFile, token) => {
+    const imageUrl = await uploadImageToCloudinary(imageFile);
 
+    const finalSorteoData = { 
+        ...sorteoData, 
+        urlImagen: imageUrl 
+    };
+
+    return crearSorteo(finalSorteoData, token);
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////
