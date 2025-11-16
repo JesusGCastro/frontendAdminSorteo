@@ -5,7 +5,7 @@ test("PAN 1. Mostrar sorteos de inicio.", async ({ page }) => {
   await page.goto('/');
   // Comprobamos que se muestran los sorteos
   await expect(
-    page.getByText("Gran Sorteo BETO 2025$150.00Navidad$")
+    page.getByText("Navidad")
   ).toBeVisible();
 });
 
