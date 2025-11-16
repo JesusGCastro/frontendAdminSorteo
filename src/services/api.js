@@ -134,6 +134,27 @@ export const apartarNumeros = async (sorteoId, numeros, token) => {
   return data;
 }
 
+// Comprar boletos
+export const comprarBoletos = async (sorteoId, numeros, token) => {
+  const bodyData = { numerosBoletos: numeros };
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${sorteoId}/tickets`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(bodyData),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || `Error ${res.status}: No se pudieron comprar los boletos.`);
+  }
+
+  const data = await res.json();
+  return data;
+};
+
 // Obtener boletos creados de un sorteo
 
 export const getBoletosPorSorteo = async (sorteoId) => {
@@ -305,16 +326,34 @@ export const registerUser = async (nombre, correo, contrasenia) => {
   }
 };
 
-// Guardar sesión
+// // Guardar sesión
+// export const saveSession = (token, user) => {
+//   localStorage.setItem("token", token);
+//   localStorage.setItem("user", JSON.stringify(user));
+// };
+
+// // Obtener sesión
+// export const getSession = () => {
+//   const token = localStorage.getItem("token");
+//   const user = JSON.parse(localStorage.getItem("user") || "null");
+//   return { token, user };
+// };
+
+// Guardar sesión (VERSIÓN CORREGIDA Y DEFINITIVA)
 export const saveSession = (token, user) => {
   localStorage.setItem("token", token);
-  localStorage.setItem("user", JSON.stringify(user));
+  // Nos aseguramos de guardar SIEMPRE el objeto de usuario plano.
+  // Si por alguna razón "user" tuviera la estructura anidada { user: {...} },
+  // extraemos el objeto interno. Si no, lo guardamos tal cual.
+  const userToSave = user.user || user;
+  localStorage.setItem("user", JSON.stringify(userToSave));
 };
 
-// Obtener sesión
+// Obtener sesión (VERSIÓN CORREGIDA Y DEFINITIVA)
 export const getSession = () => {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "null");
+  // Esta función ahora siempre devolverá un objeto "user" plano y consistente.
   return { token, user };
 };
 

@@ -11,6 +11,7 @@ import CrearSorteo from "./pages/CrearSorteo";
 import EditarSorteo from "./pages/EditarSorteo";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import PagarNumeros from "./pages/PagarNumeros";
 
 function App() {
   return (
@@ -31,6 +32,8 @@ function App() {
           <Route path="/crear-sorteo" element={<CrearSorteo />} />
           {/* Página para editar un sorteo */}
           <Route path="/edicionSorteos/:id" element={<EditarSorteo />} />
+          {/* Página para pagar un número */}
+          <Route path="/pagar/:id" element={<PagarNumeros />} />
         </Routes>
       </div>
     </div>

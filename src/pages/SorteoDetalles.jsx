@@ -295,6 +295,19 @@ const SorteoDetalles = () => {
             >
               Apartar números
             </button>
+
+            <button
+              className="btn btn-success rounded-pill mt-3 ms-3"
+              onClick={() => navigate(`/pagar/${sorteo.id}`)}
+              style={{
+                backgroundColor: "#8ef5b5",
+                color: "black",
+                border: "none",
+                fontWeight: "bold",
+              }}
+            >
+              Pagar Boletos Apartados
+            </button>
           </div>
         </div>
       </div>

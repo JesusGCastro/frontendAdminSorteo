@@ -1,0 +1,114 @@
+.pagar-numeros-page {
+  background-color: #f8f6ff; /* Fondo general de la página */
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.header-info {
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 1rem;
+  color: #555;
+}
+
+.card-pago {
+  background-color: white;
+  border-radius: 20px;
+  border: none;
+  width: 100%;
+  max-width: 1200px;
+  padding: 1.5rem 2.5rem;
+}
+
+.titulo-pago {
+  font-weight: bold;
+  color: #333;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.form-control, .form-select {
+  background-color: #f3e5f5;
+  border-radius: 8px;
+  border: none;
+  padding: 0.75rem 1rem;
+}
+
+.info-sorteo .info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.1rem 1rem;
+}
+.info-sorteo img {
+  max-height: 180px;
+  object-fit: contain;
+}
+
+.boletos-a-pagar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  gap: 10px;
+}
+
+.boleto-item {
+  border: 2px solid #ce93d8;
+  color: #8e24aa;
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.boleto-item.selected {
+  background-color: #ce93d8;
+  color: white;
+}
+
+.paginacion-boletos {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.paginacion-boletos .btn {
+  background-color: #f3e5f5;
+  border-radius: 5px;
+}
+
+.desglose-precio .precio-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.desglose-precio .precio-item.total {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.btn-volver, .btn-comprar {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-weight: bold;
+  border: none;
+  width: 200px;
+}
+
+.btn-volver {
+  background-color: #f3e5f5;
+  color: #333;
+}
+
+.btn-comprar {
+  background-color: #ce93d8;
+  color: white;
+}

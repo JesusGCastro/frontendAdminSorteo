@@ -110,7 +110,7 @@ test("PAN 8. Apartar numero superando el limite por participante.", async ({
   await page.getByRole("button", { name: "23" }).click();
   await page.getByRole("button", { name: "24" }).click();
   await page.getByRole("button", { name: "25" }).click();
-  await page.getByRole("button", { name: "5", exact: true }).click();
+  await page.getByRole("button", { name: "18", exact: true }).click();
   await page.getByRole("button", { name: "26" }).click();
   await page.getByRole("button", { name: "27" }).click();
   page.once("dialog", (dialog) => {
