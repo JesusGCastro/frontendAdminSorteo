@@ -218,7 +218,7 @@ const SorteoDetalles = () => {
 
             <div className="d-flex flex-wrap align-items-center justify-content-around mt-3">
               <img
-                src={sorteo.imagen}
+                src={sorteo.urlImagen}
                 alt={sorteo.nombre}
                 className="sorteo-imagen"
               />

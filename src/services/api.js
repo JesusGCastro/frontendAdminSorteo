@@ -56,6 +56,32 @@ export const consultarSorteos = async () => {
   return data;
 };
 
+export const consultarSorteosInactivos = async () => {
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/admin/inactive`, {
+    method: "GET",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error al consultar sorteos: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data;
+};
+
+export const consultarSorteosFinalizados = async () => {
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/admin/ended`, {
+    method: "GET",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error al consultar sorteos: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data;
+};
+
 // Obtener sorteo por ID
 export const getSorteoById = async (id) => {
   const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${id}`, {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import SorteoCard from "../components/SorteoCard";
-import { consultarSorteos } from "../services/api";
+import { consultarSorteos, consultarSorteosInactivos, consultarSorteosFinalizados } from "../services/api";
 import Sidebar from "../components/Sidebar";
 import { getSession, getRolActual } from "../api";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -47,12 +47,31 @@ const Home = () => {
 
   }, []);
 
-  // Filtrar por estado activo y por nombre
-  const sorteosFiltrados = (sorteos || []).filter(
-    (s) =>
-      s.estado === estadoFiltro &&
-      (s.nombre || "").toLowerCase().includes(filtro.toLowerCase())
-  );
+  // filtra los sorteos segun el estado seleccionado
+  const cargarSorteosPorEstado = async () => {
+    try {
+      let data;
+
+      if (estadoFiltro === "activo") {
+        data = await consultarSorteos();
+      } else if (estadoFiltro === "inactivo") {
+        data = await consultarSorteosInactivos();
+      } else if (estadoFiltro === "finalizado") {
+        data = await consultarSorteosFinalizados();
+      }
+
+      const sorteosData = Array.isArray(data?.[0]) ? data[0] : data;
+
+      setSorteos(Array.isArray(sorteosData) ? sorteosData : []);
+    } catch (err) {
+      console.error("Error al cargar sorteos:", err);
+    }
+  };
+
+  useEffect(() => {
+    cargarSorteosPorEstado();
+  }, [estadoFiltro]);
+
 
   // Mostrar nombre o "Invitado"
   const nombreUsuario = usuario?.nombre || "Invitado";
@@ -134,7 +153,7 @@ const Home = () => {
 
           {/* Botones de filtro por estado */}
           <div className="d-flex gap-2 mb-4">
-            {["activo", "inactivo", "terminado"].map((estado) => (
+            {esSorteador && (["activo", "inactivo", "finalizado"].map((estado) => (
               <button
                 key={estado}
                 className={`btn ${estadoFiltro === estado ? "text-white" : "text-dark"
@@ -150,15 +169,15 @@ const Home = () => {
               >
                 {estado.toUpperCase()}
               </button>
-            ))}
+            )))}
           </div>
 
           {/* Tarjetas de sorteos */}
           <div className="d-flex flex-wrap justify-content-start">
-            {sorteosFiltrados.length > 0 ? (
-              sorteosFiltrados.map((s) => <SorteoCard key={s.id} sorteo={s} />)
+            {sorteos.length > 0 ? (
+              sorteos.map((s) => <SorteoCard key={s.id} sorteo={s} />)
             ) : (
-              <p className="text-muted">No se encontraron sorteos activos</p>
+              <p className="text-muted">No se encontraron sorteos {estadoFiltro}</p>
             )}
           </div>
         </div>
