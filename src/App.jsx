@@ -9,10 +9,13 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import SorteoDetalles from "./pages/SorteoDetalles";
 import CrearSorteo from "./pages/CrearSorteo";
 import EditarSorteo from "./pages/EditarSorteo";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
     <div className="d-flex">
+      <ToastContainer />
       <Sidebar />
       <div className="flex-grow-1" style={{ marginLeft: "80px" }}>
         <Routes>

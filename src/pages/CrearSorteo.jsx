@@ -46,12 +46,66 @@ const CrearSorteo = () => {
     navigate(-1);
   };
 
+  const validarFormulario = () => {
+    if (parseFloat(formData.precioBoleto) <= 0) {
+      toast.error("El precio del boleto debe ser mayor a cero.");
+      return false;
+    }
+    
+    if (parseInt(formData.cantidadMaximaBoletos) <= 0) {
+      toast.error("El número de boletos debe ser mayor a cero.");
+      return false;
+    }
+    
+    if (parseInt(formData.limiteBoletosPorUsuario) <= 0) {
+      toast.error("El límite de boletos por persona debe ser mayor a cero.");
+      return false;
+    }
+
+    const ahora = new Date();
+    const ahoraConMargen = new Date(ahora.getTime() - (2 * 60 * 1000));
+    
+    const fechaInicio = new Date(formData.fechaInicialVentaBoletos);
+    const fechaFin = new Date(formData.fechaFinalVentaBoletos);
+    const fechaRealizacion = new Date(formData.fechaRealizacion);
+
+    if (fechaInicio < ahoraConMargen) {
+      toast.error("La fecha de inicio de venta no puede ser anterior a la fecha actual.");
+      return false;
+    }
+
+    if (fechaFin < ahoraConMargen) {
+      toast.error("La fecha de fin de venta no puede ser anterior a la fecha actual.");
+      return false;
+    }
+
+    if (fechaRealizacion < ahoraConMargen) {
+      toast.error("La fecha de realización no puede ser anterior a la fecha actual.");
+      return false;
+    }
+
+    if (fechaFin <= fechaInicio) {
+      toast.error("La fecha de fin de venta debe ser posterior a la fecha de inicio.");
+      return false;
+    }
+
+    if (fechaRealizacion <= fechaFin) {
+      toast.error("La fecha de realización del sorteo debe ser posterior a la fecha de fin de venta.");
+      return false;
+    }
+
+    return true;
+  };
 
   const handleCrearSorteo = async () => {
     // Aseguramos que el estado 'imagenArchivo' contenga el objeto File
     if (!imagenArchivo) {
         toast.error("Por favor, selecciona una imagen para el sorteo.");
         return;
+    }
+
+    if (!validarFormulario()) {
+      return;
     }
     
     setCargando(true);
@@ -83,7 +137,7 @@ const CrearSorteo = () => {
     } finally {
         setCargando(false);
     }
-};
+  };
 
   return (
     <div className="d-flex">
@@ -103,7 +157,6 @@ const CrearSorteo = () => {
           </p>
           <h4 className="fw-bold mb-4">Crear Sorteo</h4>
 
-          {/* 4. AJUSTAR la propiedad 'name' de cada input */}
           <form onSubmit={(e) => { e.preventDefault(); handleCrearSorteo(); }}>
             <div className="row g-4">
               <div className="col-md-6">
@@ -140,7 +193,7 @@ const CrearSorteo = () => {
                     style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px" }}
                     value={formData.precioBoleto}
                     onChange={handleInputChange}
-                    min="0"
+                    min="0.01"
                     step="0.01"
                     required
                   />
@@ -241,7 +294,7 @@ const CrearSorteo = () => {
                     style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px", width: "100px" }}
                     value={formData.limiteBoletosPorUsuario}
                     onChange={handleInputChange}
-                    min="0"
+                    min="1"
                     required
                   />
                 </div>
