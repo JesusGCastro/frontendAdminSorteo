@@ -157,7 +157,7 @@ const CrearSorteo = () => {
           </p>
           <h4 className="fw-bold mb-4">Crear Sorteo</h4>
 
-          <form onSubmit={(e) => { e.preventDefault(); handleCrearSorteo(); }}>
+          <form onSubmit={(e) => { e.preventDefault(); handleCrearSorteo(); }} noValidate>
             <div className="row g-4">
               <div className="col-md-6">
                 <div className="mb-3">
