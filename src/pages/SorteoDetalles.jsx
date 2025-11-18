@@ -256,6 +256,7 @@ const SorteoDetalles = () => {
               onClick={apartarBoletos}
               style={{
                 backgroundColor: "#C087E8",
+                color: "black",
                 border: "none",
                 fontWeight: "bold",
               }}
@@ -265,7 +266,7 @@ const SorteoDetalles = () => {
 
             {usuarioTieneBoletosApartados && (
               <button
-                className="btn btn-success rounded-pill mt-3 ms-3"
+                className="btn btn-primary rounded-pill mt-3"
                 onClick={() => navigate(`/pagar/${sorteo.id}`)}
                 style={{
                   backgroundColor: "#C087E8",
