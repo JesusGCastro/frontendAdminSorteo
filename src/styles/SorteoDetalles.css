@@ -29,6 +29,8 @@
 .leyenda .disponible::before,
 .leyenda .apartado::before,
 .leyenda .vendido::before,
+.leyenda .mi_comprado::before,
+.leyenda .mi_apartado::before,
 .leyenda .seleccionado::before {
   content: "";
   display: inline-block;
@@ -49,6 +51,13 @@
 
 .leyenda .vendido::before {
   background-color: #c19ae8;
+}
+
+.leyenda .mi_apartado::before {
+  background-color: #f5d88e;
+}
+.leyenda .mi_comprado::before {
+  background-color: #8ecaf5;
 }
 
 .leyenda .seleccionado::before {
@@ -90,6 +99,16 @@
   background-color: #c19ae8;
   color: white;
   border: none;
+}
+
+.boleto.mi_apartado {
+  background-color: #f5d88e;
+  border: 1px solid #e3b94e;
+}
+
+.boleto.mi_comprado {
+  background-color: #8ecaf5;
+  border: 1px solid #4a90e2;
 }
 
 .boleto.seleccionado {

@@ -33,7 +33,7 @@ const SorteoDetalles = () => {
   const [boletosOcupados, setBoletosOcupados] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
   const [boletosSeleccionados, setBoletosSeleccionados] = useState([]);
-  // --- CORRECCIÓN 1: Declarar el estado que faltaba ---
+  const [mostrarSoloMisBoletos, setMostrarSoloMisBoletos] = useState(false);
   const [usuarioTieneBoletosApartados, setUsuarioTieneBoletosApartados] =
     useState(false);
   const boletosPorPagina = 52;
@@ -72,7 +72,19 @@ const SorteoDetalles = () => {
     obtenerDatosCompletos();
   }, [id]);
 
-  // --- El resto de tu código se mantiene igual ---
+  //Obtenemos el id del usuario logueado
+  const idUsuarioLogueado = useMemo(() => {
+    const session = getSession();
+    const usuarioLogueado = session.user?.user || session.user;
+    return usuarioLogueado ? usuarioLogueado.id : null;
+  }, [getSession()]);
+
+  const mostrarCategoriasUsuario =
+    idUsuarioLogueado !== null &&
+    rolActual !== "invitado" &&
+    rolActual !== null;
+
+  console.log("ID Usuario Logueado:", idUsuarioLogueado);
 
   const boletosEstadoMap = useMemo(() => {
     const map = {};
@@ -86,17 +98,33 @@ const SorteoDetalles = () => {
   }, [boletosOcupados]);
 
   const estadoBoleto = (num) => {
+    // Si está seleccionado por el usuario
     if (boletosSeleccionados.includes(num)) {
       return "seleccionado";
     }
-    const estadoBackend = boletosEstadoMap[num];
-    if (estadoBackend === "APARTADO") {
-      return "apartado";
+
+    const boletoInfo = boletosOcupados.find(
+      (b) => b.numeroBoleto === num
+    );
+
+    if (boletoInfo) {
+      const { estado, userId } = boletoInfo;
+
+      console.log("Estado del boleto:", estado, "ID Usuario del boleto:", userId);
+      console.log("Información completa del boleto:", boletoInfo);
+
+      // ---- MIS BOLETOS ----
+      if (idUsuarioLogueado && userId === idUsuarioLogueado) {
+        if (estado === "APARTADO") return "mi_apartado";
+        if (estado === "COMPRADO") return "mi_comprado";
+      }
+
+      // ---- BOLETOS DE OTROS ----
+      if (estado === "APARTADO") return "apartado";
+      if (estado === "COMPRADO") return "vendido";
     }
-    if (estadoBackend === "COMPRADO") {
-      // Asumo que el estado es COMPRADO
-      return "vendido";
-    }
+
+    // Si está libre
     return "disponible";
   };
 
@@ -179,6 +207,18 @@ const SorteoDetalles = () => {
     indiceInicio + boletosPorPagina
   );
 
+  // Filtrar si se activa "Mis boletos"
+  const boletosFiltrados = mostrarSoloMisBoletos
+    ? boletosPagina.filter((num) => {
+      const b = boletosOcupados.find((x) => x.numeroBoleto === num);
+      if (!b) return false;
+      return (
+        b.userId === idUsuarioLogueado &&
+        (b.estado === "APARTADO" || b.estado === "COMPRADO")
+      );
+    })
+    : boletosPagina;
+
   return (
     <div className="d-flex">
       <Sidebar />
@@ -209,15 +249,42 @@ const SorteoDetalles = () => {
             </div>
           </div>
           <div className="boletos-section">
-            <h5 className="fw-bold mb-3">Apartar Boletos</h5>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h5 className="fw-bold m-0">Apartar Boletos</h5>
+
+              {/* Checkbox Mis boletos */}
+              {mostrarCategoriasUsuario && (
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="misBoletosCheck"
+                    checked={mostrarSoloMisBoletos}
+                    onChange={() => setMostrarSoloMisBoletos((v) => !v)}
+                  />
+                  <label className="form-check-label" htmlFor="misBoletosCheck">
+                    Mis boletos
+                  </label>
+                </div>
+              )}
+            </div>
+
             <div className="leyenda mb-3">
               <span className="disponible">Disponibles</span>
               <span className="apartado">Apartados</span>
               <span className="vendido">Vendidos</span>
               <span className="seleccionado">Seleccionados</span>
+
+              {mostrarCategoriasUsuario && (
+                <>
+                  <span className="mi_apartado">Mis Apartados</span>
+                  <span className="mi_comprado">Mis Comprados</span>
+                </>
+              )}
             </div>
+
             <div className="boletos-container">
-              {boletosPagina.map((num) => (
+              {boletosFiltrados.map((num) => (
                 <button
                   key={num}
                   className={`boleto ${estadoBoleto(num)}`}
@@ -247,27 +314,10 @@ const SorteoDetalles = () => {
                 &gt;
               </button>
             </div>
-            <div className="mt-3">
-              <strong>Boletos seleccionados:</strong>{" "}
-              {boletosSeleccionados.join(", ") || "Ninguno"}
-            </div>
-            <button
-              className="btn btn-primary rounded-pill mt-3"
-              onClick={apartarBoletos}
-              style={{
-                backgroundColor: "#C087E8",
-                color: "black",
-                border: "none",
-                fontWeight: "bold",
-              }}
-            >
-              Apartar números
-            </button>
-
-            {usuarioTieneBoletosApartados && (
+            <div className="d-flex align-items-center mt-3">
               <button
-                className="btn btn-primary rounded-pill mt-3"
-                onClick={() => navigate(`/pagar/${sorteo.id}`)}
+                className="btn btn-primary rounded-pill"
+                onClick={apartarBoletos}
                 style={{
                   backgroundColor: "#C087E8",
                   color: "black",
@@ -275,9 +325,26 @@ const SorteoDetalles = () => {
                   fontWeight: "bold",
                 }}
               >
-                Pagar Boletos Apartados
+                Apartar números
               </button>
-            )}
+
+              {usuarioTieneBoletosApartados && (
+                <button
+                  className="btn btn-primary rounded-pill"
+                  onClick={() => navigate(`/pagar/${sorteo.id}`)}
+                  style={{
+                    backgroundColor: "#C087E8",
+                    color: "black",
+                    border: "none",
+                    fontWeight: "bold",
+                    marginLeft: "auto",
+                  }}
+                >
+                  Pagar Números Apartados
+                </button>
+              )}
+            </div>
+
           </div>
         </div>
       </div>
