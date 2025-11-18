@@ -82,6 +82,20 @@ export const consultarSorteosFinalizados = async () => {
   return data;
 };
 
+//Consultar sorteos de un participante
+export const consultarSorteosDeParticipante = async (participanteId) => {
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/participant/${participanteId}`, {
+    method: "GET",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error al obtener sorteos: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data;
+};
+
 // Obtener sorteo por ID
 export const getSorteoById = async (id) => {
   const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${id}`, {

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import SorteoCard from "../components/SorteoCard";
-import { consultarSorteos, consultarSorteosInactivos, consultarSorteosFinalizados } from "../services/api";
+import { consultarSorteos, consultarSorteosInactivos, consultarSorteosFinalizados, consultarSorteosDeParticipante } from "../services/api";
 import Sidebar from "../components/Sidebar";
-import { getSession, getRolActual } from "../api";
+import { getSession, getRolActual, getToken } from "../api";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
 
@@ -13,55 +13,51 @@ const Home = () => {
   const [estadoFiltro, setEstadoFiltro] = useState("activo");
   const navigate = useNavigate();
 
+  // Obtener sesión y rol
   useEffect(() => {
-    // Obtener sesión actual
     const session = getSession();
-    console.log("Sesión obtenida:", session);
     setUsuario(session.user);
-
-    const obtenerSorteos = async () => {
-      try {
-
-
-        const data = await consultarSorteos();
-
-        // 3. Lógica defensiva para desempacar el array
-        // (Asegurarse que data exista antes de acceder a data[0])
-        const sorteosData = data && Array.isArray(data[0]) ? data[0] : data;
-
-        // 4. Asegurarnos que siempre seteamos un array
-        setSorteos(Array.isArray(sorteosData) ? sorteosData : []);
-
-      } catch (err) {
-        // 5. SOLUCIÓN PUNTO 2: Capturar cualquier error de la API
-        console.error("Error al cargar sorteos:", err);
-        console.log(err.message); // Guardar el error para mostrarlo al usuario
-      } finally {
-        // 6. SOLUCIÓN PUNTO 2: Indicar que la carga terminó
-        console.log("Intento de carga de sorteos finalizado.");
-      }
-    };
-
-    // 7. Llamar a la función
-    obtenerSorteos();
-
   }, []);
 
-  // filtra los sorteos segun el estado seleccionado
+  const rolActual = getRolActual() || "invitado";
+  const esSorteador = rolActual === "sorteador";
+  const esInvitado = rolActual === "invitado";
+  const esParticipante = rolActual === "participante";
+
+  console.log("Rol actual en el Home:", getRolActual());
+
+  // Ajustar filtro inicial según rol
+  useEffect(() => {
+    if (esInvitado) setEstadoFiltro("activo");
+    if (esParticipante) setEstadoFiltro("todos");
+  }, [rolActual]);
+
+
+  // Cargar sorteos según rol y categoría
   const cargarSorteosPorEstado = async () => {
     try {
       let data;
 
-      if (estadoFiltro === "activo") {
-        data = await consultarSorteos();
-      } else if (estadoFiltro === "inactivo") {
-        data = await consultarSorteosInactivos();
-      } else if (estadoFiltro === "finalizado") {
-        data = await consultarSorteosFinalizados();
+      if (esSorteador) {
+        if (estadoFiltro === "activo") data = await consultarSorteos();
+        if (estadoFiltro === "inactivo") data = await consultarSorteosInactivos();
+        if (estadoFiltro === "finalizado") data = await consultarSorteosFinalizados();
+      }
+
+      if (esInvitado) {
+        data = await consultarSorteos(); // solo activos
+      }
+
+      if (esParticipante) {
+        if (estadoFiltro === "todos") data = await consultarSorteos();
+        if (estadoFiltro === "participando") {
+          //TODO: NO muestra nada por que no esta conectado al backend
+          data = null
+          //data = await consultarSorteosDeParticipante(await getToken());
+        }
       }
 
       const sorteosData = Array.isArray(data?.[0]) ? data[0] : data;
-
       setSorteos(Array.isArray(sorteosData) ? sorteosData : []);
     } catch (err) {
       console.error("Error al cargar sorteos:", err);
@@ -73,47 +69,37 @@ const Home = () => {
   }, [estadoFiltro]);
 
 
-  // Mostrar nombre o "Invitado"
   const nombreUsuario = usuario?.nombre || "Invitado";
-  const rolActual = getRolActual() || "participante"; // si no hay rol, por defecto participante
-  const rolFormateado =
-    rolActual.charAt(0).toUpperCase() + rolActual.slice(1).toLowerCase();
 
+  let rolFormateado = "";
 
-  const esSorteador = getRolActual() === "sorteador";
+  if (rolActual === "sorteador" || rolActual === "participante") {
+    rolFormateado = rolActual.charAt(0).toUpperCase() + rolActual.slice(1).toLowerCase();
+  }
 
-  const handleCrearSorteo = () => {
-    navigate("/crear-sorteo");
-  };
+  const handleCrearSorteo = () => navigate("/crear-sorteo");
 
   return (
     <div className="d-flex">
       {/* Sidebar */}
       <Sidebar />
 
-      {/* Contenido principal */}
+      {/* Contenido */}
       <div className="flex-grow-1" style={{ marginLeft: "80px" }}>
         <div className="container py-4">
-          {/* Etiqueta del usuario */}
-          <p
-            style={{
-              color: "#000",
-              fontSize: "0.9rem",
-              fontWeight: "400",
-              maxWidth: "100%",
-              marginBottom: "0.5rem",
-            }}
-          >
+
+          {/* Usuario */}
+          <p style={{ color: "#000", fontSize: "0.9rem", fontWeight: "400", marginBottom: "0.5rem" }}>
             {`${nombreUsuario} / ${rolFormateado}`}
           </p>
 
-          {/* Encabezado con titulo y boton */}
+          {/* Título y botón */}
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h4 className="fw-bold mb-0">Sorteos disponibles</h4>
 
-            {/* El boton solo visible para sorteadores */}
             {esSorteador && (
-              <button className="btn d-flex align-items-center gap-2 px-4 py-2"
+              <button
+                className="btn d-flex align-items-center gap-2 px-4 py-2"
                 onClick={handleCrearSorteo}
                 style={{
                   backgroundColor: "#D1AAD3",
@@ -129,7 +115,7 @@ const Home = () => {
             )}
           </div>
 
-          {/* Barra de búsqueda */}
+          {/* Buscador */}
           <div className="input-group mb-4" style={{ maxWidth: "1300px" }}>
             <input
               type="text"
@@ -137,42 +123,56 @@ const Home = () => {
               placeholder="Buscar sorteo"
               value={filtro}
               onChange={(e) => setFiltro(e.target.value)}
-              style={{
-                backgroundColor: "#F1DEF7",
-              }}
+              style={{ backgroundColor: "#F1DEF7" }}
             />
-            <span
-              className="input-group-text rounded-end-pill border-0"
-              style={{
-                backgroundColor: "#DAA1ED",
-              }}
-            >
+            <span className="input-group-text rounded-end-pill border-0" style={{ backgroundColor: "#DAA1ED" }}>
               <i className="bi bi-search"></i>
             </span>
           </div>
 
-          {/* Botones de filtro por estado */}
+          {/* Categorías según rol */}
           <div className="d-flex gap-2 mb-4">
-            {esSorteador && (["activo", "inactivo", "finalizado"].map((estado) => (
-              <button
-                key={estado}
-                className={`btn ${estadoFiltro === estado ? "text-white" : "text-dark"
-                  }`}
-                style={{
-                  backgroundColor:
-                    estadoFiltro === estado ? "#DAA1ED" : "#F1DEF7",
-                  fontWeight: "600",
-                  borderRadius: "25px",
-                  border: "none",
-                }}
-                onClick={() => setEstadoFiltro(estado)}
-              >
-                {estado.toUpperCase()}
-              </button>
-            )))}
+
+            {/* Sorteador */}
+            {esSorteador &&
+              ["activo", "inactivo", "finalizado"].map((estado) => (
+                <button
+                  key={estado}
+                  className={`btn ${estadoFiltro === estado ? "text-white" : "text-dark"}`}
+                  style={{
+                    backgroundColor: estadoFiltro === estado ? "#DAA1ED" : "#F1DEF7",
+                    fontWeight: "600",
+                    borderRadius: "25px",
+                    border: "none",
+                  }}
+                  onClick={() => setEstadoFiltro(estado)}
+                >
+                  {estado.toUpperCase()}
+                </button>
+              ))}
+
+            {/* Participante */}
+            {esParticipante &&
+              ["todos", "participando"].map((estado) => (
+                <button
+                  key={estado}
+                  className={`btn ${estadoFiltro === estado ? "text-white" : "text-dark"}`}
+                  style={{
+                    backgroundColor: estadoFiltro === estado ? "#DAA1ED" : "#F1DEF7",
+                    fontWeight: "600",
+                    borderRadius: "25px",
+                    border: "none",
+                  }}
+                  onClick={() => setEstadoFiltro(estado)}
+                >
+                  {estado.toUpperCase()}
+                </button>
+              ))}
+
+            {/* Invitado no muestra categorías */}
           </div>
 
-          {/* Tarjetas de sorteos */}
+          {/* Lista */}
           <div className="d-flex flex-wrap justify-content-start">
             {sorteos.length > 0 ? (
               sorteos.map((s) => <SorteoCard key={s.id} sorteo={s} />)
@@ -180,6 +180,7 @@ const Home = () => {
               <p className="text-muted">No se encontraron sorteos {estadoFiltro}</p>
             )}
           </div>
+
         </div>
       </div>
     </div>
