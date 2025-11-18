@@ -34,7 +34,8 @@ const SorteoDetalles = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const [boletosSeleccionados, setBoletosSeleccionados] = useState([]);
   // --- CORRECCIÓN 1: Declarar el estado que faltaba ---
-  const [usuarioTieneBoletosApartados, setUsuarioTieneBoletosApartados] = useState(false);
+  const [usuarioTieneBoletosApartados, setUsuarioTieneBoletosApartados] =
+    useState(false);
   const boletosPorPagina = 52;
 
   useEffect(() => {
@@ -52,8 +53,10 @@ const SorteoDetalles = () => {
         const usuarioLogueado = session.user?.user || session.user;
 
         if (usuarioLogueado && Array.isArray(dataBoletos)) {
-          const tieneApartados = dataBoletos.some(boleto => 
-            boleto.estado === 'APARTADO' && boleto.userId === usuarioLogueado.id
+          const tieneApartados = dataBoletos.some(
+            (boleto) =>
+              boleto.estado === "APARTADO" &&
+              boleto.userId === usuarioLogueado.id
           );
           setUsuarioTieneBoletosApartados(tieneApartados);
         } else {
@@ -61,7 +64,6 @@ const SorteoDetalles = () => {
           setUsuarioTieneBoletosApartados(false);
         }
         // ------------------------------------
-
       } catch (error) {
         console.error("Error al obtener los datos del sorteo:", error);
         setSorteo(null); // Usamos null para que la condición de carga funcione bien
@@ -74,10 +76,11 @@ const SorteoDetalles = () => {
 
   const boletosEstadoMap = useMemo(() => {
     const map = {};
-    if (Array.isArray(boletosOcupados)) { // Añadida verificación por seguridad
-        boletosOcupados.forEach((boleto) => {
-            map[boleto.numeroBoleto] = boleto.estado;
-        });
+    if (Array.isArray(boletosOcupados)) {
+      // Añadida verificación por seguridad
+      boletosOcupados.forEach((boleto) => {
+        map[boleto.numeroBoleto] = boleto.estado;
+      });
     }
     return map;
   }, [boletosOcupados]);
@@ -90,7 +93,8 @@ const SorteoDetalles = () => {
     if (estadoBackend === "APARTADO") {
       return "apartado";
     }
-    if (estadoBackend === "COMPRADO") { // Asumo que el estado es COMPRADO
+    if (estadoBackend === "COMPRADO") {
+      // Asumo que el estado es COMPRADO
       return "vendido";
     }
     return "disponible";
@@ -112,9 +116,13 @@ const SorteoDetalles = () => {
     }
 
     const token = getToken();
-    
-    if (!token) { 
-      if (window.confirm("Para apartar boletos, necesitas iniciar sesión. ¿Deseas ir a la página de inicio de sesión ahora?")) {
+
+    if (!token) {
+      if (
+        window.confirm(
+          "Para apartar boletos, necesitas iniciar sesión. ¿Deseas ir a la página de inicio de sesión ahora?"
+        )
+      ) {
         navigate("/login");
       }
       return;
@@ -128,20 +136,22 @@ const SorteoDetalles = () => {
           (ticket) => ticket.numeroBoleto
         );
         alert(`Boletos apartados exitosamente: ${numerosApartados.join(", ")}`);
-        
+
         setBoletosOcupados((prev) => [...prev, ...response.reservedTickets]);
         setBoletosSeleccionados([]);
         setUsuarioTieneBoletosApartados(true); // Actualizamos el estado para mostrar el botón de pagar
 
         if (response.failedToReserve && response.failedToReserve.length > 0) {
           alert(
-            `Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(", ")}`
+            `Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(
+              ", "
+            )}`
           );
         }
       })
       .catch((error) => {
         console.error("Error al apartar boletos:", error);
-        alert(`Error: ${error.message}`); 
+        alert(`Error: ${error.message}`);
       });
   };
 
@@ -179,11 +189,22 @@ const SorteoDetalles = () => {
             <h5 className="fw-bold mb-2">Descripción</h5>
             <p>{sorteo.descripcion}</p>
             <div className="d-flex flex-wrap align-items-center justify-content-around mt-3">
-              <img src={sorteo.urlImagen} alt={sorteo.nombre} className="sorteo-imagen"/>
+              <img
+                src={sorteo.urlImagen}
+                alt={sorteo.nombre}
+                className="sorteo-imagen"
+              />
               <div className="sorteo-info mt-3">
-                <p><strong>Premio:</strong> {sorteo.premio}</p>
-                <p><strong>Costo del boleto:</strong> ${sorteo.precioBoleto}</p>
-                <p><strong>Fecha final de compra boletos:</strong> {formatDate(sorteo.fechaFinalVentaBoletos)}</p>
+                <p>
+                  <strong>Premio:</strong> {sorteo.premio}
+                </p>
+                <p>
+                  <strong>Costo del boleto:</strong> ${sorteo.precioBoleto}
+                </p>
+                <p>
+                  <strong>Fecha final de compra boletos:</strong>{" "}
+                  {formatDate(sorteo.fechaFinalVentaBoletos)}
+                </p>
               </div>
             </div>
           </div>
@@ -208,22 +229,46 @@ const SorteoDetalles = () => {
               ))}
             </div>
             <div className="d-flex justify-content-center align-items-center mt-3">
-              <button className="btn btn-sm btn-outline-secondary mx-2" disabled={paginaActual === 1} onClick={() => setPaginaActual((p) => p - 1)}>&lt;</button>
-              <span>Página {paginaActual} de {totalPaginas}</span>
-              <button className="btn btn-sm btn-outline-secondary mx-2" disabled={paginaActual === totalPaginas} onClick={() => setPaginaActual((p) => p + 1)}>&gt;</button>
+              <button
+                className="btn btn-sm btn-outline-secondary mx-2"
+                disabled={paginaActual === 1}
+                onClick={() => setPaginaActual((p) => p - 1)}
+              >
+                &lt;
+              </button>
+              <span>
+                Página {paginaActual} de {totalPaginas}
+              </span>
+              <button
+                className="btn btn-sm btn-outline-secondary mx-2"
+                disabled={paginaActual === totalPaginas}
+                onClick={() => setPaginaActual((p) => p + 1)}
+              >
+                &gt;
+              </button>
             </div>
             <div className="mt-3">
-              <strong>Boletos seleccionados:</strong> {boletosSeleccionados.join(", ") || "Ninguno"}
+              <strong>Boletos seleccionados:</strong>{" "}
+              {boletosSeleccionados.join(", ") || "Ninguno"}
             </div>
-            <button className="btn btn-primary rounded-pill mt-3" onClick={apartarBoletos} style={{ backgroundColor: "#C087E8", border: "none", fontWeight: "bold" }}>Apartar números</button>
-            
-            
+            <button
+              className="btn btn-primary rounded-pill mt-3"
+              onClick={apartarBoletos}
+              style={{
+                backgroundColor: "#C087E8",
+                border: "none",
+                fontWeight: "bold",
+              }}
+            >
+              Apartar números
+            </button>
+
             {usuarioTieneBoletosApartados && (
               <button
                 className="btn btn-success rounded-pill mt-3 ms-3"
                 onClick={() => navigate(`/pagar/${sorteo.id}`)}
                 style={{
-                  backgroundColor: "#8ef5b5",
+                  backgroundColor: "#C087E8",
                   color: "black",
                   border: "none",
                   fontWeight: "bold",
