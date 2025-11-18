@@ -80,9 +80,7 @@ const SorteoDetalles = () => {
   }, [getSession()]);
 
   const mostrarCategoriasUsuario =
-    idUsuarioLogueado !== null &&
-    rolActual !== "invitado" &&
-    rolActual !== null;
+    idUsuarioLogueado !== null;
 
   console.log("ID Usuario Logueado:", idUsuarioLogueado);
 
