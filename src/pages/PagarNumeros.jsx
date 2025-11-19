@@ -1,105 +1,141 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  getSorteoById,
-  getBoletosPorSorteo,
-  getSession,
-  getToken, 
-  pagarBoletosApartados,
+    getSorteoById,
+    getBoletosPorSorteo,
+    getSession,
+    getToken,
+    pagarBoletosApartados,
 } from "../services/api";
 import { toast } from "react-toastify";
 import "./PagarNumeros.css";
 
 const PagarNumeros = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+    const { id } = useParams();
+    const navigate = useNavigate();
 
-  const session = getSession();
-  const usuarioLogueado = session.user?.user || session.user;
+    const session = getSession();
+    const usuarioLogueado = session.user?.user || session.user;
 
-  // --- LIMPIEZA: Eliminados los console.log de depuración ---
+    // --- LIMPIEZA: Eliminados los console.log de depuración ---
 
-  const [sorteo, setSorteo] = useState(null);
-  const [boletosApartados, setBoletosApartados] = useState([]);
-  const [boletosSeleccionados, setBoletosSeleccionados] = useState([]);
-  const [metodoPago, setMetodoPago] = useState("paypal");
-  const [cargando, setCargando] = useState(true);
-  const [comprarTodos, setComprarTodos] = useState(false);
+    const [sorteo, setSorteo] = useState(null);
+    const [boletosApartados, setBoletosApartados] = useState([]);
+    const [boletosSeleccionados, setBoletosSeleccionados] = useState([]);
+    const [metodoPago, setMetodoPago] = useState("Tarjeta de Crédito/Débito");
+    const [cargando, setCargando] = useState(true);
+    const [comprarTodos, setComprarTodos] = useState(false);
 
-  const nombreUsuario = usuarioLogueado?.nombre || "Usuario";
-  const rolActual = "Participante";
+    const nombreUsuario = usuarioLogueado?.nombre || "Usuario";
+    const rolActual = "Participante";
+    const [numeroTarjeta, setNumeroTarjeta] = useState("");
+    const [mes, setMes] = useState("");
+    const [anio, setAnio] = useState("");
+    const [cvc, setCvc] = useState("");
 
-  useEffect(() => {
-    const cargarDatos = async () => {
-      if (
-        !session.token ||
-        !usuarioLogueado ||
-        typeof usuarioLogueado.id === "undefined"
-      ) {
-        toast.error("Debes iniciar sesión para poder pagar.");
-        navigate("/login");
-        return;
-      }
-
-      try {
-        // --- LIMPIEZA: Eliminado console.log de "Cargando datos..." ---
-
-        const [dataSorteo, dataBoletos] = await Promise.all([
-          getSorteoById(id),
-          getBoletosPorSorteo(id),
-        ]);
-
-        if (Array.isArray(dataBoletos)) {
-          const idUsuarioActual = usuarioLogueado.id;
-          const misBoletosApartados = dataBoletos.filter(
-            (b) => b.estado === "APARTADO" && b.userId === idUsuarioActual
-          );
-          setSorteo(dataSorteo);
-          setBoletosApartados(misBoletosApartados);
-          // --- LIMPIEZA: Eliminado console.log de "Boletos apartados encontrados" ---
-        } else {
-          setSorteo(dataSorteo);
-          setBoletosApartados([]); 
-        }
-      } catch (error) {
-        toast.error("Error al cargar los datos del sorteo.");
-        console.error("Detalle del error en cargarDatos:", error); // Este es útil dejarlo por si falla la red
-      } finally {
-        setCargando(false);
-      }
+    const handleNumeroTarjeta = (e) => {
+        let value = e.target.value.replace(/\D/g, "");
+        value = value.slice(0, 16);
+        value = value.replace(/(.{4})/g, "$1 ").trim();
+        setNumeroTarjeta(value);
     };
 
-    cargarDatos();
-  }, [id, navigate, session.token, usuarioLogueado]);
+    const handleMes = (e) => {
+        let v = e.target.value.replace(/\D/g, "");
+        setMes(v.slice(0, 2));
+    };
 
-  // ... El resto del código (handlers y return) se queda igual ...
-  
-  const handleToggleSeleccion = (numeroBoleto) => {
-    setBoletosSeleccionados((prev) =>
-      prev.includes(numeroBoleto)
-        ? prev.filter((n) => n !== numeroBoleto)
-        : [...prev, numeroBoleto]
-    );
-  };
+    const handleAnio = (e) => {
+        let v = e.target.value.replace(/\D/g, "");
+        setAnio(v.slice(0, 2));
+    };
 
-  const handleToggleComprarTodos = (e) => {
-    const checked = e.target.checked;
-    setComprarTodos(checked);
-    setBoletosSeleccionados(
-      checked ? boletosApartados.map((b) => b.numeroBoleto) : []
-    );
-  };
+    const handleCvc = (e) => {
+        let v = e.target.value.replace(/\D/g, "");
+        setCvc(v.slice(0, 3));
+    };
 
-  useEffect(() => {
-    setComprarTodos(
-      boletosApartados.length > 0 &&
-        boletosSeleccionados.length === boletosApartados.length
-    );
-  }, [boletosSeleccionados, boletosApartados]);
+    const tarjetaValida =
+        (
+            numeroTarjeta.replace(/\s/g, "").length === 16 &&
+            /^[0-9]{2}$/.test(mes) &&
+            Number(mes) >= 1 &&
+            Number(mes) <= 12 &&
+            /^[0-9]{2}$/.test(anio) &&
+            /^[0-9]{3}$/.test(cvc)
+        );
 
-  const handleVolver = () => navigate(-1);
-  
-  const handleRealizarCompra = async () => {
+    useEffect(() => {
+        const cargarDatos = async () => {
+            if (
+                !session.token ||
+                !usuarioLogueado ||
+                typeof usuarioLogueado.id === "undefined"
+            ) {
+                toast.error("Debes iniciar sesión para poder pagar.");
+                navigate("/login");
+                return;
+            }
+
+            try {
+                // --- LIMPIEZA: Eliminado console.log de "Cargando datos..." ---
+
+                const [dataSorteo, dataBoletos] = await Promise.all([
+                    getSorteoById(id),
+                    getBoletosPorSorteo(id),
+                ]);
+
+                if (Array.isArray(dataBoletos)) {
+                    const idUsuarioActual = usuarioLogueado.id;
+                    const misBoletosApartados = dataBoletos.filter(
+                        (b) => b.estado === "APARTADO" && b.userId === idUsuarioActual
+                    );
+                    setSorteo(dataSorteo);
+                    setBoletosApartados(misBoletosApartados);
+                    // --- LIMPIEZA: Eliminado console.log de "Boletos apartados encontrados" ---
+                } else {
+                    setSorteo(dataSorteo);
+                    setBoletosApartados([]);
+                }
+            } catch (error) {
+                toast.error("Error al cargar los datos del sorteo.");
+                console.error("Detalle del error en cargarDatos:", error); // Este es útil dejarlo por si falla la red
+            } finally {
+                setCargando(false);
+            }
+        };
+
+        cargarDatos();
+    }, [id, navigate, session.token, usuarioLogueado]);
+
+    // ... El resto del código (handlers y return) se queda igual ...
+
+    const handleToggleSeleccion = (numeroBoleto) => {
+        setBoletosSeleccionados((prev) =>
+            prev.includes(numeroBoleto)
+                ? prev.filter((n) => n !== numeroBoleto)
+                : [...prev, numeroBoleto]
+        );
+    };
+
+    const handleToggleComprarTodos = (e) => {
+        const checked = e.target.checked;
+        setComprarTodos(checked);
+        setBoletosSeleccionados(
+            checked ? boletosApartados.map((b) => b.numeroBoleto) : []
+        );
+    };
+
+    useEffect(() => {
+        setComprarTodos(
+            boletosApartados.length > 0 &&
+            boletosSeleccionados.length === boletosApartados.length
+        );
+    }, [boletosSeleccionados, boletosApartados]);
+
+    const handleVolver = () => navigate(-1);
+
+    const handleRealizarCompra = async () => {
         const token = getToken();
         if (!token) {
             toast.error("Sesión no válida. Por favor inicia sesión nuevamente.");
@@ -125,11 +161,11 @@ const PagarNumeros = () => {
                 token
             );
 
-            toast.update(loadingToast, { 
-                render: "¡Pago exitoso! Tus boletos han sido comprados.", 
-                type: "success", 
-                isLoading: false, 
-                autoClose: 3000 
+            toast.update(loadingToast, {
+                render: "¡Pago exitoso! Tus boletos han sido comprados.",
+                type: "success",
+                isLoading: false,
+                autoClose: 3000
             });
 
             setTimeout(() => {
@@ -143,182 +179,186 @@ const PagarNumeros = () => {
         }
     };
 
-  const calcularTotal = () => {
-    const precioUnitario = Number(sorteo?.precioBoleto) || 0;
-    const cantidad = boletosSeleccionados.length;
-    const subtotal = cantidad * precioUnitario;
-    const impuestos = subtotal * 0.16;
-    const total = subtotal + impuestos;
+    const calcularTotal = () => {
+        const precioUnitario = Number(sorteo?.precioBoleto) || 0;
+        const cantidad = boletosSeleccionados.length;
+        const total = cantidad * precioUnitario;
 
-    return {
-      precio: precioUnitario,
-      cantidad,
-      subtotal,
-      impuestos,
-      total,
+        return {
+            precio: precioUnitario,
+            cantidad,
+            total,
+        };
     };
-  };
 
-  const totalCompra = calcularTotal();
+    const totalCompra = calcularTotal();
 
-  if (cargando)
+    if (cargando)
+        return (
+            <div className="container mt-5 text-center">
+                Cargando datos del pago...
+            </div>
+        );
+
     return (
-      <div className="container mt-5 text-center">
-        Cargando datos del pago...
-      </div>
-    );
+        <div className="pagar-numeros-page">
+            <div className="header-info">
+                <p>{`${nombreUsuario} / ${rolActual}`}</p>
+            </div>
+            <div className="card card-pago shadow-sm">
+                <div className="card-body">
+                    <h2 className="titulo-pago">Pagar números</h2>
+                    <div className="row mt-4 align-items-center">
+                        <div className="col-lg-4">
+                            <div className="mb-4">
+                                <label className="form-label">
+                                    Seleccione un método de pago
+                                </label>
+                                <select
+                                    className="form-select"
+                                    value={metodoPago}
+                                    onChange={(e) => setMetodoPago(e.target.value)}
+                                >
+                                    <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                                </select>
+                            </div>
+                            <div className="mb-3"><label className="form-label">Número de tarjeta</label><input
+                                type="text"
+                                className="form-control"
+                                placeholder="•••• •••• •••• ••••"
+                                value={numeroTarjeta}
+                                onChange={handleNumeroTarjeta}
+                            />
+                            </div>
+                            <div className="row mb-3">
+                                <div className="col-7">
+                                    <label className="form-label">Fecha de caducidad</label>
+                                    <div className="d-flex gap-1">
+                                        <input
+                                            type="text"
+                                            className={`form-control ${mes !== "" && (Number(mes) < 1 || Number(mes) > 12) ? "is-invalid" : ""}`}
+                                            placeholder="MM"
+                                            value={mes}
+                                            onChange={handleMes}
+                                        />
 
-  return (
-    <div className="pagar-numeros-page">
-      <div className="header-info">
-        <p>{`${nombreUsuario} / ${rolActual}`}</p>
-      </div>
-      <div className="card card-pago shadow-sm">
-        <div className="card-body">
-          <h2 className="titulo-pago">Pagar números</h2>
-          <div className="row mt-4 align-items-center">
-            <div className="col-lg-4">
-              <div className="mb-4">
-                <label className="form-label">
-                  Seleccione un método de pago
-                </label>
-                <select
-                  className="form-select"
-                  value={metodoPago}
-                  onChange={(e) => setMetodoPago(e.target.value)}
-                >
-                  <option value="paypal">Paypal</option>
-                  <option value="tarjeta">Tarjeta de Crédito/Débito</option>
-                </select>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Número de tarjeta</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="•••• •••• •••• ••••"
-                />
-              </div>
-              <div className="row mb-3">
-                <div className="col-7">
-                  <label className="form-label">Fecha de caducidad</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="MM/AA"
-                  />
-                </div>
-                <div className="col-5">
-                  <label className="form-label">Código de seguridad</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="CVC"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-4 text-center info-sorteo">
-              <div className="info-item">
-                <span>Sorteo</span>
-                <span>{sorteo?.nombre}</span>
-              </div>
-              <div className="info-item">
-                <span>Premio</span>
-                <span>{sorteo?.premio}</span>
-              </div>
-              <img
-                src={sorteo?.urlImagen}
-                alt={sorteo?.nombre}
-                className="img-fluid my-3"
-              />
-            </div>
-            <div className="col-lg-4">
-              <label className="form-label">
-                Seleccione los números a comprar
-              </label>
-              <div className="boletos-a-pagar-grid mb-3">
-                {boletosApartados.length > 0 ? (
-                  boletosApartados.map((b) => (
-                    <div
-                      key={b.numeroBoleto}
-                      className={`boleto-item ${
-                        boletosSeleccionados.includes(b.numeroBoleto)
-                          ? "selected"
-                          : ""
-                      }`}
-                      onClick={() => handleToggleSeleccion(b.numeroBoleto)}
-                    >
-                      {b.numeroBoleto}
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="AA"
+                                            value={anio}
+                                            onChange={handleAnio}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="col-5">
+                                    <label className="form-label">Código de seguridad</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="CVC"
+                                        value={cvc}
+                                        onChange={handleCvc}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-lg-4 text-center info-sorteo">
+                            <div className="info-item">
+                                <span>Sorteo</span>
+                                <span>{sorteo?.nombre}</span>
+                            </div>
+                            <div className="info-item">
+                                <span>Premio</span>
+                                <span>{sorteo?.premio}</span>
+                            </div>
+                            <img
+                                src={sorteo?.urlImagen}
+                                alt={sorteo?.nombre}
+                                className="img-fluid my-3"
+                            />
+                        </div>
+                        <div className="col-lg-4">
+                            <label className="form-label">
+                                Seleccione los números a comprar
+                            </label>
+                            <div className="boletos-a-pagar-grid mb-3">
+                                {boletosApartados.length > 0 ? (
+                                    boletosApartados.map((b) => (
+                                        <div
+                                            key={b.numeroBoleto}
+                                            className={`boleto-item ${boletosSeleccionados.includes(b.numeroBoleto)
+                                                ? "selected"
+                                                : ""
+                                                }`}
+                                            onClick={() => handleToggleSeleccion(b.numeroBoleto)}
+                                        >
+                                            {b.numeroBoleto}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-muted small">
+                                        No tienes boletos apartados para este sorteo.
+                                    </p>
+                                )}
+                            </div>
+                            <div className="paginacion-boletos mb-3">
+                                <button className="btn btn-sm">&lt;</button>
+                                <button className="btn btn-sm">&gt;</button>
+                            </div>
+                            <div className="form-check mb-3">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="comprarTodos"
+                                    checked={comprarTodos}
+                                    onChange={handleToggleComprarTodos}
+                                />
+                                <label className="form-check-label" htmlFor="comprarTodos">
+                                    Comprar todos los numeros apartados
+                                </label>
+                            </div>
+                            <div className="desglose-precio">
+                                <div className="precio-item">
+                                    <span>Precio del boleto</span>
+                                    <span>${totalCompra.precio.toFixed(2)}</span>
+                                </div>
+                                <div className="precio-item">
+                                    <span>Cantidad</span>
+                                    <span>{totalCompra.cantidad}</span>
+                                </div>
+                                <hr />
+                                <div className="precio-item total">
+                                    <span>Total</span>
+                                    <span>${totalCompra.total.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-muted small">
-                    No tienes boletos apartados para este sorteo.
-                  </p>
-                )}
-              </div>
-              <div className="paginacion-boletos mb-3">
-                <button className="btn btn-sm">&lt;</button>
-                <button className="btn btn-sm">&gt;</button>
-              </div>
-              <div className="form-check mb-3">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="comprarTodos"
-                  checked={comprarTodos}
-                  onChange={handleToggleComprarTodos}
-                />
-                <label className="form-check-label" htmlFor="comprarTodos">
-                  Comprar todos los numeros apartados
-                </label>
-              </div>
-              <div className="desglose-precio">
-                <div className="precio-item">
-                  <span>Precio del boleto</span>
-                  <span>${totalCompra.precio.toFixed(2)}</span>
+                    <div className="row mt-5">
+                        <div className="col-6 d-flex justify-content-center">
+                            <button onClick={handleVolver} className="btn btn-volver">
+                                <i className="bi bi-arrow-left me-2"></i>Volver
+                            </button>
+                        </div>
+                        <div className="col-6 d-flex justify-content-center">
+                            <button
+                                onClick={handleRealizarCompra}
+                                className="btn btn-comprar"
+                                disabled={
+                                    boletosSeleccionados.length === 0 || !tarjetaValida
+                                }
+                            >
+                                Realizar compra
+                            </button>
+
+                        </div>
+                    </div>
                 </div>
-                <div className="precio-item">
-                  <span>Cantidad</span>
-                  <span>{totalCompra.cantidad}</span>
-                </div>
-                <hr />
-                <div className="precio-item">
-                  <span>Subtotal</span>
-                  <span>${totalCompra.subtotal.toFixed(2)}</span>
-                </div>
-                <div className="precio-item">
-                  <span>Impuestos</span>
-                  <span>${totalCompra.impuestos.toFixed(2)}</span>
-                </div>
-                <div className="precio-item total">
-                  <span>Total</span>
-                  <span>${totalCompra.total.toFixed(2)}</span>
-                </div>
-              </div>
             </div>
-          </div>
-          <div className="row mt-5">
-            <div className="col-6 d-flex justify-content-center">
-              <button onClick={handleVolver} className="btn btn-volver">
-                <i className="bi bi-arrow-left me-2"></i>Volver
-              </button>
-            </div>
-            <div className="col-6 d-flex justify-content-center">
-              <button
-                onClick={handleRealizarCompra}
-                className="btn btn-comprar"
-                disabled={boletosSeleccionados.length === 0}
-              >
-                Realizar compra
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default PagarNumeros;
