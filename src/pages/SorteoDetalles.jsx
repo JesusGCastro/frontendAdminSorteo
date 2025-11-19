@@ -5,7 +5,7 @@ import {
   apartarNumeros,
   getBoletosPorSorteo,
   getToken,
-  getSession, // <-- Asegúrate de que getSession esté importado
+  getSession,
 } from "../services/api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
