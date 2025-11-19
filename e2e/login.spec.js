@@ -13,7 +13,9 @@ test('IS 1. Iniciar sesion con credenciales validas.', async ({ page }) => {
   await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
 
   // Comprobamos que hemos iniciado sesion correctamente, viendo el nombre del usuario en la parte de arriba de la pagina
-  await expect(page.getByText('Carlos')).toBeVisible();
+  await expect(page.getByText('Carlos / Participante')).toBeVisible({ 
+    timeout: 10000 
+  });
 });
 
 test('IS 2. Iniciar sesion con credenciales invalidas.', async ({ page }) => {
