@@ -470,4 +470,31 @@ export const crearSorteoConImagen = async (sorteoData, imageFile, token) => {
     return crearSorteo(finalSorteoData, token);
 };
 
+// Pagar boletos apartados (Confirmar compra en línea)
+export const pagarBoletosApartados = async (raffleId, tickets, monto, claveRastreo, token) => {
+  // El backend espera: tickets (array), claveRastreo (string), monto (decimal)
+  const bodyData = { 
+    tickets, 
+    monto, 
+    claveRastreo 
+  };
+
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/tickets/pay/${raffleId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(bodyData),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Error ${res.status}: No se pudo realizar el pago.`);
+  }
+
+  const data = await res.json();
+  return data;
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////
