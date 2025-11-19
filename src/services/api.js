@@ -3,7 +3,10 @@ const API_URL = "https://apigatewaysorteos.onrender.com";
 const RAFFLES_PATH = "api/raffles";
 const IMGBB_API_KEY= "b234eceb83416a07c80c0d0397f718ad"
 const CLOUDINARY_CLOUD_NAME = "dtejuoctt" ;
-const CLOUDINARY_UPLOAD_PRESET = "sorteos"; 
+const CLOUDINARY_UPLOAD_PRESET = "sorteos";
+const USERS_PATH = "api/users";
+
+///////////////////////////////////////////////////////////////////////////////////////// 
 
 // Métodos para manejar sorteos
 
@@ -229,7 +232,7 @@ export const verifyToken = async () => {
   if (!token) return false;
 
   try {
-    const res = await fetch(`${API_URL}/verify-token`, {
+    const res = await fetch(`${API_URL}/${USERS_PATH}/verify-token`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -250,7 +253,7 @@ export const loginUser = async (correo, contrasenia) => {
   console.log("Enviando datos al backend:", bodyData);
 
   try {
-    const res = await fetch(`${API_URL}/login`, {
+    const res = await fetch(`${API_URL}/${USERS_PATH}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData),
@@ -290,7 +293,7 @@ export const registerUser = async (nombre, correo, contrasenia) => {
   console.log("Enviando datos al backend:", bodyData);
 
   try {
-    const res = await fetch(`${API_URL}/register`, {
+    const res = await fetch(`${API_URL}/${USERS_PATH}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData),
@@ -384,7 +387,7 @@ export const getUserProfile = async (token) => {
   console.log("Token recibido para perfil:", token);
 
   try {
-    const res = await fetch(`${API_URL}/perfil`, {
+    const res = await fetch(`${API_URL}/${USERS_PATH}/perfil`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
