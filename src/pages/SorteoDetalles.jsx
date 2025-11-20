@@ -272,8 +272,16 @@ const SorteoDetalles = () => {
                   <strong>Costo del boleto:</strong> ${sorteo.precioBoleto}
                 </p>
                 <p>
+                  <strong>Fecha inicial de compra de boletos:</strong>{" "}
+                  {formatDate(sorteo.fechaInicialVentaBoletos)}
+                </p>
+                <p>
                   <strong>Fecha final de compra boletos:</strong>{" "}
                   {formatDate(sorteo.fechaFinalVentaBoletos)}
+                </p>
+                <p>
+                  <strong>Fecha de realización del sorteo:</strong>{" "}
+                  {formatDate(sorteo.fechaRealizacion)}
                 </p>
               </div>
             </div>
