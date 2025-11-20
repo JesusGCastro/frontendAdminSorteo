@@ -9,8 +9,7 @@ import {
 } from "../services/api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
-
-// La línea "useState(false);" que estaba aquí ha sido eliminada.
+import { toast } from 'react-toastify';
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -72,6 +71,15 @@ const SorteoDetalles = () => {
     obtenerDatosCompletos();
   }, [id]);
 
+  const sorteoNoIniciado = useMemo(() => {
+    if (!sorteo?.fechaInicialVentaBoletos) return false;
+
+    const hoy = new Date();
+    const fechaInicio = new Date(sorteo.fechaInicialVentaBoletos);
+
+    return hoy < fechaInicio;
+  }, [sorteo]);
+
   //Obtenemos el id del usuario logueado
   const idUsuarioLogueado = useMemo(() => {
     const session = getSession();
@@ -79,8 +87,7 @@ const SorteoDetalles = () => {
     return usuarioLogueado ? usuarioLogueado.id : null;
   }, [getSession()]);
 
-  const mostrarCategoriasUsuario =
-    idUsuarioLogueado !== null;
+  const mostrarCategoriasUsuario = idUsuarioLogueado !== null;
 
   console.log("ID Usuario Logueado:", idUsuarioLogueado);
 
@@ -101,14 +108,17 @@ const SorteoDetalles = () => {
       return "seleccionado";
     }
 
-    const boletoInfo = boletosOcupados.find(
-      (b) => b.numeroBoleto === num
-    );
+    const boletoInfo = boletosOcupados.find((b) => b.numeroBoleto === num);
 
     if (boletoInfo) {
       const { estado, userId } = boletoInfo;
 
-      console.log("Estado del boleto:", estado, "ID Usuario del boleto:", userId);
+      console.log(
+        "Estado del boleto:",
+        estado,
+        "ID Usuario del boleto:",
+        userId
+      );
       console.log("Información completa del boleto:", boletoInfo);
 
       // ---- MIS BOLETOS ----
@@ -127,17 +137,39 @@ const SorteoDetalles = () => {
   };
 
   const alternarSeleccion = (num) => {
-    if (boletosEstadoMap[num]) {
+    if (sorteoNoIniciado) {
+      toast.error(
+        `Este sorteo aún no inicia.\nLa venta de boletos empieza el ${formatDate(
+          sorteo.fechaInicialVentaBoletos
+        )}.`
+      );
       return;
     }
+
+    if (boletosEstadoMap[num]) return;
+
     setBoletosSeleccionados((prev) =>
       prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num]
     );
   };
 
   const apartarBoletos = () => {
+    if (sorteoNoIniciado) {
+      toast.error(
+        `Este sorteo aún no inicia.\nNo puedes apartar boletos hasta el ${formatDate(
+          sorteo.fechaInicialVentaBoletos
+        )}.`
+      );
+      return;
+    }
+
     if (boletosSeleccionados.length === 0) {
-      alert("Por favor, selecciona al menos un boleto para apartar.");
+      toast.error("Por favor, selecciona al menos un boleto para apartar.");
+      return;
+    }
+
+    if (boletosSeleccionados.length === 0) {
+      toast.error("Por favor, selecciona al menos un boleto para apartar.");
       return;
     }
 
@@ -161,14 +193,14 @@ const SorteoDetalles = () => {
         const numerosApartados = response.reservedTickets.map(
           (ticket) => ticket.numeroBoleto
         );
-        alert(`Boletos apartados exitosamente: ${numerosApartados.join(", ")}`);
+        toast.success(`Boletos apartados exitosamente: ${numerosApartados.join(", ")}`);
 
         setBoletosOcupados((prev) => [...prev, ...response.reservedTickets]);
         setBoletosSeleccionados([]);
         setUsuarioTieneBoletosApartados(true); // Actualizamos el estado para mostrar el botón de pagar
 
         if (response.failedToReserve && response.failedToReserve.length > 0) {
-          alert(
+          toast.warning(
             `Los siguientes boletos no se pudieron apartar (ya estaban ocupados): ${response.failedToReserve.join(
               ", "
             )}`
@@ -177,7 +209,7 @@ const SorteoDetalles = () => {
       })
       .catch((error) => {
         console.error("Error al apartar boletos:", error);
-        alert(`Error: ${error.message}`);
+        toast.error(`Error: ${error.message}`);
       });
   };
 
@@ -208,13 +240,13 @@ const SorteoDetalles = () => {
   // Filtrar si se activa "Mis boletos"
   const boletosFiltrados = mostrarSoloMisBoletos
     ? boletosPagina.filter((num) => {
-      const b = boletosOcupados.find((x) => x.numeroBoleto === num);
-      if (!b) return false;
-      return (
-        b.userId === idUsuarioLogueado &&
-        (b.estado === "APARTADO" || b.estado === "COMPRADO")
-      );
-    })
+        const b = boletosOcupados.find((x) => x.numeroBoleto === num);
+        if (!b) return false;
+        return (
+          b.userId === idUsuarioLogueado &&
+          (b.estado === "APARTADO" || b.estado === "COMPRADO")
+        );
+      })
     : boletosPagina;
 
   return (
@@ -342,7 +374,6 @@ const SorteoDetalles = () => {
                 </button>
               )}
             </div>
-
           </div>
         </div>
       </div>
