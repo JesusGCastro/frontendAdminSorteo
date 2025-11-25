@@ -17,8 +17,6 @@ const PagarNumeros = () => {
     const session = getSession();
     const usuarioLogueado = session.user?.user || session.user;
 
-    // --- LIMPIEZA: Eliminados los console.log de depuración ---
-
     const [sorteo, setSorteo] = useState(null);
     const [boletosApartados, setBoletosApartados] = useState([]);
     const [boletosSeleccionados, setBoletosSeleccionados] = useState([]);
@@ -28,20 +26,26 @@ const PagarNumeros = () => {
 
     const nombreUsuario = usuarioLogueado?.nombre || "Usuario";
     const rolActual = "Participante";
+    
+    // Estados del formulario de tarjeta
     const [numeroTarjeta, setNumeroTarjeta] = useState("");
     const [mes, setMes] = useState("");
     const [anio, setAnio] = useState("");
     const [cvc, setCvc] = useState("");
 
+    // --- Manejadores de Inputs ---
+
     const handleNumeroTarjeta = (e) => {
-        let value = e.target.value.replace(/\D/g, "");
-        value = value.slice(0, 16);
-        value = value.replace(/(.{4})/g, "$1 ").trim();
+        let value = e.target.value.replace(/\D/g, ""); // Solo números
+        value = value.slice(0, 16); // Máximo 16 dígitos
+        // Formato visual: grupos de 4
+        value = value.replace(/(.{4})/g, "$1 ").trim(); 
         setNumeroTarjeta(value);
     };
 
     const handleMes = (e) => {
         let v = e.target.value.replace(/\D/g, "");
+        if (Number(v) > 12) v = "12"; // No permitir más de 12
         setMes(v.slice(0, 2));
     };
 
@@ -55,15 +59,38 @@ const PagarNumeros = () => {
         setCvc(v.slice(0, 3));
     };
 
+    // --- Lógica de Validación de Fecha ---
+    const validarExpiracion = () => {
+        if (mes.length < 2 || anio.length < 2) return false; // Aún escribiendo
+
+        const mesNum = parseInt(mes, 10);
+        const anioNum = parseInt(anio, 10);
+        
+        // Obtener fecha actual (año 2 dígitos)
+        const hoy = new Date();
+        const anioActual = hoy.getFullYear() % 100; 
+        const mesActual = hoy.getMonth() + 1;
+
+        // Validaciones
+        if (mesNum < 1 || mesNum > 12) return true; // Mes inválido (ya expirado en lógica)
+        if (anioNum < anioActual) return true; // Año pasado
+        if (anioNum === anioActual && mesNum < mesActual) return true; // Año actual, mes pasado
+
+        return false; // No está expirada (es válida)
+    };
+
+    const tarjetaExpirada = validarExpiracion();
+
     const tarjetaValida =
         (
             numeroTarjeta.replace(/\s/g, "").length === 16 &&
             /^[0-9]{2}$/.test(mes) &&
-            Number(mes) >= 1 &&
-            Number(mes) <= 12 &&
             /^[0-9]{2}$/.test(anio) &&
+            !tarjetaExpirada && // Verificar que no haya vencido
             /^[0-9]{3}$/.test(cvc)
         );
+
+    // --- Efectos y Carga de Datos ---
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -78,8 +105,6 @@ const PagarNumeros = () => {
             }
 
             try {
-                // --- LIMPIEZA: Eliminado console.log de "Cargando datos..." ---
-
                 const [dataSorteo, dataBoletos] = await Promise.all([
                     getSorteoById(id),
                     getBoletosPorSorteo(id),
@@ -92,14 +117,13 @@ const PagarNumeros = () => {
                     );
                     setSorteo(dataSorteo);
                     setBoletosApartados(misBoletosApartados);
-                    // --- LIMPIEZA: Eliminado console.log de "Boletos apartados encontrados" ---
                 } else {
                     setSorteo(dataSorteo);
                     setBoletosApartados([]);
                 }
             } catch (error) {
                 toast.error("Error al cargar los datos del sorteo.");
-                console.error("Detalle del error en cargarDatos:", error); // Este es útil dejarlo por si falla la red
+                console.error("Detalle del error en cargarDatos:", error);
             } finally {
                 setCargando(false);
             }
@@ -107,8 +131,6 @@ const PagarNumeros = () => {
 
         cargarDatos();
     }, [id, navigate, session.token, usuarioLogueado]);
-
-    // ... El resto del código (handlers y return) se queda igual ...
 
     const handleToggleSeleccion = (numeroBoleto) => {
         setBoletosSeleccionados((prev) =>
@@ -222,44 +244,55 @@ const PagarNumeros = () => {
                                     <option value="tarjeta">Tarjeta de Crédito/Débito</option>
                                 </select>
                             </div>
-                            <div className="mb-3"><label className="form-label">Número de tarjeta</label><input
-                                type="text"
-                                className="form-control"
-                                placeholder="•••• •••• •••• ••••"
-                                value={numeroTarjeta}
-                                onChange={handleNumeroTarjeta}
-                            />
+                            <div className="mb-3">
+                                <label className="form-label">Número de tarjeta</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="•••• •••• •••• ••••"
+                                    value={numeroTarjeta}
+                                    onChange={handleNumeroTarjeta}
+                                    maxLength={19} // 16 digitos + 3 espacios
+                                />
                             </div>
                             <div className="row mb-3">
                                 <div className="col-7">
                                     <label className="form-label">Fecha de caducidad</label>
-                                    <div className="d-flex gap-1">
+                                    <div className="d-flex gap-1 align-items-center">
                                         <input
                                             type="text"
-                                            className={`form-control ${mes !== "" && (Number(mes) < 1 || Number(mes) > 12) ? "is-invalid" : ""}`}
+                                            className={`form-control text-center ${tarjetaExpirada ? "is-invalid" : ""}`}
                                             placeholder="MM"
                                             value={mes}
                                             onChange={handleMes}
+                                            maxLength={2}
                                         />
-
+                                        <span className="fw-bold">/</span>
                                         <input
                                             type="text"
-                                            className="form-control"
+                                            className={`form-control text-center ${tarjetaExpirada ? "is-invalid" : ""}`}
                                             placeholder="AA"
                                             value={anio}
                                             onChange={handleAnio}
+                                            maxLength={2}
                                         />
                                     </div>
+                                    {tarjetaExpirada && (
+                                        <div className="text-danger mt-1" style={{fontSize: "0.8rem"}}>
+                                            Tarjeta vencida
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="col-5">
                                     <label className="form-label">Código de seguridad</label>
                                     <input
-                                        type="text"
-                                        className="form-control"
+                                        type="password" 
+                                        className="form-control text-center"
                                         placeholder="CVC"
                                         value={cvc}
                                         onChange={handleCvc}
+                                        maxLength={3}
                                     />
                                 </div>
                             </div>
@@ -304,8 +337,9 @@ const PagarNumeros = () => {
                                 )}
                             </div>
                             <div className="paginacion-boletos mb-3">
-                                <button className="btn btn-sm">&lt;</button>
-                                <button className="btn btn-sm">&gt;</button>
+                                {/* Paginación visual placeholder, si la necesitas funcional avísame */}
+                                <button className="btn btn-sm" disabled>&lt;</button>
+                                <button className="btn btn-sm" disabled>&gt;</button>
                             </div>
                             <div className="form-check mb-3">
                                 <input
@@ -314,6 +348,7 @@ const PagarNumeros = () => {
                                     id="comprarTodos"
                                     checked={comprarTodos}
                                     onChange={handleToggleComprarTodos}
+                                    disabled={boletosApartados.length === 0}
                                 />
                                 <label className="form-check-label" htmlFor="comprarTodos">
                                     Comprar todos los numeros apartados

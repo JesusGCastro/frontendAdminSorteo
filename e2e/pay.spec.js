@@ -76,7 +76,8 @@ test('PPL 4. Validación de campos de tarjeta y selección mínima.', async ({ p
   await page.getByRole('textbox', { name: 'MM' }).click();
   await page.getByRole('textbox', { name: 'MM' }).fill('11');
   await page.getByRole('textbox', { name: 'AA' }).click();
-  await page.getByRole('textbox', { name: 'AA' }).fill('12');
+  // Año futuro para no expirar
+  await page.getByRole('textbox', { name: 'AA' }).fill('30');
   await page.getByRole('textbox', { name: 'CVC' }).click();
   await page.getByRole('textbox', { name: 'CVC' }).fill('060');
 
@@ -95,9 +96,10 @@ test('PPL 4. Validación de campos de tarjeta y selección mínima.', async ({ p
   await expect(page.getByText('Realizar compra')).toBeEnabled();
 
   await page.getByRole('textbox', { name: 'MM' }).click();
-  await page.getByRole('textbox', { name: 'MM' }).fill('32');
+  // CAMBIO AQUÍ: Usamos '00' para forzar inválido, ya que '32' se autocorrige a '12'
+  await page.getByRole('textbox', { name: 'MM' }).fill('00');
 
-  // Verificar que NO se puede pagar sin llenar tarjeta
+  // Verificar que NO se puede pagar sin llenar tarjeta (mes inválido)
   await expect(page.getByText('Realizar compra')).toBeDisabled();
 
   await page.getByRole('textbox', { name: 'MM' }).click();
@@ -108,7 +110,7 @@ test('PPL 4. Validación de campos de tarjeta y selección mínima.', async ({ p
 
   await page.getByText('62').click();
 
-  // Verificar que NO se puede pagar sin llenar tarjeta
+  // Verificar que NO se puede pagar sin llenar tarjeta (sin boletos)
   await expect(page.getByText('Realizar compra')).toBeDisabled();
 
   await page.getByText('62').click();
@@ -138,7 +140,8 @@ test('PPL 5. Pago de todos los números apartados.', async ({ page }) => {
   await page.getByRole('textbox', { name: 'MM' }).click();
   await page.getByRole('textbox', { name: 'MM' }).fill('11');
   await page.getByRole('textbox', { name: 'AA' }).click();
-  await page.getByRole('textbox', { name: 'AA' }).fill('12');
+  // Año futuro para no expirar
+  await page.getByRole('textbox', { name: 'AA' }).fill('30');
   await page.getByRole('textbox', { name: 'CVC' }).click();
   await page.getByRole('textbox', { name: 'CVC' }).fill('060');
 

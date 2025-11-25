@@ -289,7 +289,8 @@ test.describe("", () => {
     await loginAsSorteador(page);
     await page.getByRole("button", { name: " Crear Sorteo" }).click();
     
-    await expect(page.getByText("Crear Sorteo")).toBeVisible();
+    // CORRECCIÓN: Buscar por heading para evitar ambigüedad
+    await expect(page.getByRole("heading", { name: "Crear Sorteo" })).toBeVisible();
     
     await page.getByRole("button", { name: "Cancelar" }).click();
     
