@@ -79,6 +79,12 @@ const Home = () => {
 
   const handleCrearSorteo = () => navigate("/crear-sorteo");
 
+  // --- LÓGICA DE FILTRADO DINÁMICO ---
+  // Filtramos la lista "master" (sorteos) basado en el texto del input (filtro)
+  const sorteosFiltrados = sorteos.filter((s) => 
+    s.nombre.toLowerCase().includes(filtro.toLowerCase())
+  );
+
   return (
     <div className="d-flex">
       {/* Sidebar */}
@@ -172,12 +178,16 @@ const Home = () => {
             {/* Invitado no muestra categorías */}
           </div>
 
-          {/* Lista */}
+          {/* Lista Filtrada */}
           <div className="d-flex flex-wrap justify-content-start">
-            {sorteos.length > 0 ? (
-              sorteos.map((s) => <SorteoCard key={s.id} sorteo={s} />)
+            {sorteosFiltrados.length > 0 ? (
+              sorteosFiltrados.map((s) => <SorteoCard key={s.id} sorteo={s} />)
             ) : (
-              <p className="text-muted">No se encontraron sorteos {estadoFiltro}</p>
+              <p className="text-muted">
+                {filtro 
+                  ? "No se encontraron sorteos con ese nombre." 
+                  : `No se encontraron sorteos ${estadoFiltro}`}
+              </p>
             )}
           </div>
 
