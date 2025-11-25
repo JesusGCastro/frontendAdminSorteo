@@ -102,6 +102,27 @@ const SorteoDetalles = () => {
     return map;
   }, [boletosOcupados]);
 
+  // NUEVA LÓGICA: Agrupar mis boletos (Ignorando paginación)
+  // MOVIDO AQUÍ ARRIBA PARA EVITAR EL ERROR DE HOOKS
+  const misBoletosGrouped = useMemo(() => {
+    if (!idUsuarioLogueado || !Array.isArray(boletosOcupados))
+      return { apartados: [], comprados: [] };
+
+    // Filtramos TODOS los boletos del usuario separando apatados de comprados
+    const mis = boletosOcupados.filter((b) => b.userId === idUsuarioLogueado);
+
+    return {
+      apartados: mis
+        .filter((b) => b.estado === "APARTADO")
+        .map((b) => b.numeroBoleto)
+        .sort((a, b) => a - b),
+      comprados: mis
+        .filter((b) => b.estado === "COMPRADO")
+        .map((b) => b.numeroBoleto)
+        .sort((a, b) => a - b),
+    };
+  }, [boletosOcupados, idUsuarioLogueado]);
+
   const estadoBoleto = (num) => {
     // Si está seleccionado por el usuario
     if (boletosSeleccionados.includes(num)) {
@@ -227,6 +248,29 @@ const SorteoDetalles = () => {
     );
   }
 
+  // // Lógica de paginación segura (evita error si 'sorteo.cantidadMaximaBoletos' no existe)
+  // const cantidadBoletos = sorteo.cantidadMaximaBoletos || 0;
+  // const boletos = Array.from({ length: cantidadBoletos }, (_, i) => i + 1);
+  // const totalPaginas = Math.ceil(boletos.length / boletosPorPagina);
+  // const indiceInicio = (paginaActual - 1) * boletosPorPagina;
+  // const boletosPagina = boletos.slice(
+  //   indiceInicio,
+  //   indiceInicio + boletosPorPagina
+  // );
+
+  // // Filtrar si se activa "Mis boletos"
+  // const boletosFiltrados = mostrarSoloMisBoletos
+  //   ? boletosPagina.filter((num) => {
+  //       const b = boletosOcupados.find((x) => x.numeroBoleto === num);
+  //       if (!b) return false;
+  //       return (
+  //         b.userId === idUsuarioLogueado &&
+  //         (b.estado === "APARTADO" || b.estado === "COMPRADO")
+  //       );
+  //     })
+  //   : boletosPagina;
+
+
   // Lógica de paginación segura (evita error si 'sorteo.cantidadMaximaBoletos' no existe)
   const cantidadBoletos = sorteo.cantidadMaximaBoletos || 0;
   const boletos = Array.from({ length: cantidadBoletos }, (_, i) => i + 1);
@@ -236,18 +280,6 @@ const SorteoDetalles = () => {
     indiceInicio,
     indiceInicio + boletosPorPagina
   );
-
-  // Filtrar si se activa "Mis boletos"
-  const boletosFiltrados = mostrarSoloMisBoletos
-    ? boletosPagina.filter((num) => {
-        const b = boletosOcupados.find((x) => x.numeroBoleto === num);
-        if (!b) return false;
-        return (
-          b.userId === idUsuarioLogueado &&
-          (b.estado === "APARTADO" || b.estado === "COMPRADO")
-        );
-      })
-    : boletosPagina;
 
   return (
     <div className="d-flex">
@@ -321,7 +353,7 @@ const SorteoDetalles = () => {
               )}
             </div>
 
-            <div className="boletos-container">
+            {/* <div className="boletos-container">
               {boletosFiltrados.map((num) => (
                 <button
                   key={num}
@@ -332,8 +364,74 @@ const SorteoDetalles = () => {
                   {num}
                 </button>
               ))}
+            </div> */}
+
+            <div className="boletos-container">
+              {/* VISTA 1: MODO "MIS BOLETOS" (Agrupado y sin paginación) */}
+              {mostrarSoloMisBoletos ? (
+                <div className="w-100">
+                  {/* Sección Apartados */}
+                  {misBoletosGrouped.apartados.length > 0 && (
+                    <div className="mb-3">
+                      <h6 className="fw-bold text-muted mb-2">Mis Apartados</h6>
+                      <div className="d-flex flex-wrap gap-2 justify-content-center">
+                        {misBoletosGrouped.apartados.map((num) => (
+                          <button
+                            key={num}
+                            className={`boleto ${estadoBoleto(num)}`}
+                            onClick={() => alternarSeleccion(num)}
+                            disabled={true} // Mis apartados ya están ocupados
+                          >
+                            {num}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sección Comprados */}
+                  {misBoletosGrouped.comprados.length > 0 && (
+                    <div className="mb-3">
+                      <h6 className="fw-bold text-muted mb-2">Mis Comprados</h6>
+                      <div className="d-flex flex-wrap gap-2 justify-content-center">
+                        {misBoletosGrouped.comprados.map((num) => (
+                          <button
+                            key={num}
+                            className={`boleto ${estadoBoleto(num)}`}
+                            onClick={() => alternarSeleccion(num)}
+                            disabled={true} // Mis comprados ya están ocupados
+                          >
+                            {num}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mensaje si no tiene nada */}
+                  {misBoletosGrouped.apartados.length === 0 &&
+                    misBoletosGrouped.comprados.length === 0 && (
+                      <p className="text-center text-muted">
+                        No tienes boletos apartados ni comprados aún.
+                      </p>
+                    )}
+                </div>
+              ) : (
+                /* VISTA 2: MODO NORMAL (Paginado) - Se mantiene igual para los tests */
+                boletosPagina.map((num) => (
+                  <button
+                    key={num}
+                    className={`boleto ${estadoBoleto(num)}`}
+                    onClick={() => alternarSeleccion(num)}
+                    disabled={!!boletosEstadoMap[num]}
+                  >
+                    {num}
+                  </button>
+                ))
+              )}
             </div>
-            <div className="d-flex justify-content-center align-items-center mt-3">
+
+            {/* <div className="d-flex justify-content-center align-items-center mt-3">
               <button
                 className="btn btn-sm btn-outline-secondary mx-2"
                 disabled={paginaActual === 1}
@@ -351,7 +449,32 @@ const SorteoDetalles = () => {
               >
                 &gt;
               </button>
-            </div>
+            </div> */}
+
+            {/* Solo mostrar paginación si NO estamos en "Mis boletos" */}
+            {!mostrarSoloMisBoletos && (
+              <div className="d-flex justify-content-center align-items-center mt-3">
+                <button
+                  className="btn btn-sm btn-outline-secondary mx-2"
+                  disabled={paginaActual === 1}
+                  onClick={() => setPaginaActual((p) => p - 1)}
+                >
+                  &lt;
+                </button>
+                <span>
+                  Página {paginaActual} de {totalPaginas}
+                </span>
+                <button
+                  className="btn btn-sm btn-outline-secondary mx-2"
+                  disabled={paginaActual === totalPaginas}
+                  onClick={() => setPaginaActual((p) => p + 1)}
+                >
+                  &gt;
+                </button>
+              </div>
+            )}
+
+
             <div className="d-flex align-items-center mt-3">
               <button
                 className="btn btn-primary rounded-pill"
