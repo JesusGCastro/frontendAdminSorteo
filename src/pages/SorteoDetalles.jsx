@@ -10,6 +10,7 @@ import {
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
 import { toast } from 'react-toastify';
+import ModalMetodoPago from '../components/ModalMetodoPago'
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -36,6 +37,7 @@ const SorteoDetalles = () => {
   const [usuarioTieneBoletosApartados, setUsuarioTieneBoletosApartados] =
     useState(false);
   const boletosPorPagina = 52;
+  const [mostrarModalPago, setMostrarModalPago] = useState(false)
 
   useEffect(() => {
     const obtenerDatosCompletos = async () => {
@@ -281,6 +283,18 @@ const SorteoDetalles = () => {
     indiceInicio + boletosPorPagina
   );
 
+  const handleSeleccionMetodoPago = (metodo) => {
+  setMostrarModalPago(false);
+  
+  if (metodo === 'online') {
+    // Redirige a pago en línea (actual)
+    navigate(`/pagar/${sorteo.id}`);
+  } else if (metodo === 'transferencia') {
+    // Redirige a pago por transferencia (nueva página)
+    navigate(`/pagar-transferencia/${sorteo.id}`);
+  }
+};
+
   return (
     <div className="d-flex">
       <Sidebar />
@@ -474,7 +488,6 @@ const SorteoDetalles = () => {
               </div>
             )}
 
-
             <div className="d-flex align-items-center mt-3">
               <button
                 className="btn btn-primary rounded-pill"
@@ -492,7 +505,7 @@ const SorteoDetalles = () => {
               {usuarioTieneBoletosApartados && (
                 <button
                   className="btn btn-primary rounded-pill"
-                  onClick={() => navigate(`/pagar/${sorteo.id}`)}
+                  onClick={() => setMostrarModalPago(true)}
                   style={{
                     backgroundColor: "#C087E8",
                     color: "black",
@@ -508,6 +521,11 @@ const SorteoDetalles = () => {
           </div>
         </div>
       </div>
+      <ModalMetodoPago
+        isOpen={mostrarModalPago}
+        onClose={() => setMostrarModalPago(false)}
+        onSelectMetodo={handleSeleccionMetodoPago}
+      />
     </div>
   );
 };

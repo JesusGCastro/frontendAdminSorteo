@@ -1,0 +1,55 @@
+/* Animaciones y estilos mínimos para complementar Bootstrap */
+
+.modal.show {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-dialog {
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Hover effect para los botones de método de pago */
+.metodo-btn {
+  transition: all 0.3s ease;
+  border-width: 2px !important;
+}
+
+.metodo-btn:hover {
+  background-color: #f9f5ff !important;
+  border-color: #C087E8 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(192, 135, 232, 0.2);
+}
+
+.metodo-btn i {
+  color: #C087E8;
+}
+
+/* Ajuste del color del botón primario al tema */
+.metodo-btn.btn-outline-primary {
+  color: #333;
+}
+
+.metodo-btn.btn-outline-primary:hover {
+  color: #333;
+}

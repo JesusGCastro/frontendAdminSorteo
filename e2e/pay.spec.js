@@ -67,6 +67,8 @@ test('PPL 4. Validación de campos de tarjeta y selección mínima.', async ({ p
 
   await page.getByRole('button', { name: 'Pagar Números Apartados' }).click();
 
+  await page.getByRole('button', { name: 'Pago en Línea' }).click();
+
   // Verificar que NO se puede pagar sin llenar tarjeta
   await expect(page.getByText('Realizar compra')).toBeDisabled();
 
@@ -133,6 +135,8 @@ test('PPL 5. Pago de todos los números apartados.', async ({ page }) => {
 
   // Dar click en pagar números apartados
   await page.getByRole('button', { name: 'Pagar Números Apartados' }).click();
+
+  await page.getByRole('button', { name: 'Pago en Línea' }).click();
 
   // Llenar tarjeta válida
   await page.getByRole('textbox', { name: '•••• •••• •••• ••••' }).click();
