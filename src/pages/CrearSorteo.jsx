@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { getSession, getToken, crearSorteo, uploadImageToCloudinary} from "../services/api";
 import { toast } from 'react-toastify';
-
 
 const CrearSorteo = () => {
   const navigate = useNavigate();
@@ -28,6 +27,15 @@ const CrearSorteo = () => {
   
   const [imagenArchivo, setImagenArchivo] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const [minDate, setMinDate] = useState("");
+
+  // Calcular la fecha mínima (ahora) para los inputs de fecha
+  useEffect(() => {
+    const now = new Date();
+    // Ajustar a zona horaria local para el input datetime-local
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    setMinDate(now.toISOString().slice(0, 16));
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -44,6 +52,13 @@ const CrearSorteo = () => {
 
   const handleCancelar = () => {
     navigate(-1);
+  };
+
+  // Función para evitar caracteres inválidos en inputs numéricos (e, E, +, -)
+  const preventInvalidNumberInput = (e) => {
+    if (["e", "E", "+", "-"].includes(e.key)) {
+      e.preventDefault();
+    }
   };
 
   const validarFormulario = () => {
@@ -63,7 +78,7 @@ const CrearSorteo = () => {
     }
 
     const ahora = new Date();
-    const ahoraConMargen = new Date(ahora.getTime() - (2 * 60 * 1000));
+    const ahoraConMargen = new Date(ahora.getTime() - (2 * 60 * 1000)); // Margen de 2 min
     
     const fechaInicio = new Date(formData.fechaInicialVentaBoletos);
     const fechaFin = new Date(formData.fechaFinalVentaBoletos);
@@ -160,6 +175,8 @@ const CrearSorteo = () => {
           <form onSubmit={(e) => { e.preventDefault(); handleCrearSorteo(); }} noValidate>
             <div className="row g-4">
               <div className="col-md-6">
+                
+                {/* Nombre de la rifa */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Nombre de la rifa</label>
                   <input
@@ -169,9 +186,15 @@ const CrearSorteo = () => {
                     style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px" }}
                     value={formData.nombre}
                     onChange={handleInputChange}
+                    maxLength={50}
                     required
                   />
+                  <div className="text-end text-muted" style={{fontSize: '0.75rem'}}>
+                    {formData.nombre.length}/50
+                  </div>
                 </div>
+
+                {/* Descripción */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Descripción</label>
                   <textarea
@@ -181,9 +204,15 @@ const CrearSorteo = () => {
                     value={formData.descripcion}
                     onChange={handleInputChange}
                     rows="4"
+                    maxLength={250}
                     required
                   />
+                  <div className="text-end text-muted" style={{fontSize: '0.75rem'}}>
+                    {formData.descripcion.length}/250
+                  </div>
                 </div>
+
+                {/* Precio Boleto */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Precio del boleto</label>
                   <input
@@ -193,11 +222,14 @@ const CrearSorteo = () => {
                     style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px" }}
                     value={formData.precioBoleto}
                     onChange={handleInputChange}
+                    onKeyDown={preventInvalidNumberInput}
                     min="0.01"
                     step="0.01"
                     required
                   />
                 </div>
+
+                {/* Cantidad Boletos */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Numero de boletos</label>
                   <input
@@ -207,10 +239,13 @@ const CrearSorteo = () => {
                     style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px" }}
                     value={formData.cantidadMaximaBoletos}
                     onChange={handleInputChange}
+                    onKeyDown={preventInvalidNumberInput}
                     min="1"
                     required
                   />
                 </div>
+
+                {/* Imagen */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Imagen</label>
                   <div className="d-flex align-items-stretch" style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", overflow: "hidden" }}>
@@ -231,7 +266,10 @@ const CrearSorteo = () => {
                   </div>
                 </div>
               </div>
+
               <div className="col-md-6">
+                
+                {/* Premio */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Premio</label>
                   <input
@@ -241,9 +279,15 @@ const CrearSorteo = () => {
                     style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px" }}
                     value={formData.premio}
                     onChange={handleInputChange}
+                    maxLength={100}
                     required
                   />
+                   <div className="text-end text-muted" style={{fontSize: '0.75rem'}}>
+                    {formData.premio.length}/100
+                  </div>
                 </div>
+
+                {/* Rango de Venta */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Rango de venta de boletos</label>
                   <div className="row g-2">
@@ -256,6 +300,7 @@ const CrearSorteo = () => {
                         style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px" }}
                         value={formData.fechaInicialVentaBoletos}
                         onChange={handleInputChange}
+                        min={minDate}
                         required
                       />
                     </div>
@@ -268,11 +313,14 @@ const CrearSorteo = () => {
                         style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px" }}
                         value={formData.fechaFinalVentaBoletos}
                         onChange={handleInputChange}
+                        min={minDate}
                         required
                       />
                     </div>
                   </div>
                 </div>
+
+                {/* Fecha Realización */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Fecha de realización del sorteo</label>
                   <input
@@ -282,9 +330,12 @@ const CrearSorteo = () => {
                     style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px" }}
                     value={formData.fechaRealizacion}
                     onChange={handleInputChange}
+                    min={minDate}
                     required
                   />
                 </div>
+
+                {/* Limite por Usuario */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Límite de apartados por persona</label>
                   <input
@@ -294,6 +345,7 @@ const CrearSorteo = () => {
                     style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px", width: "100px" }}
                     value={formData.limiteBoletosPorUsuario}
                     onChange={handleInputChange}
+                    onKeyDown={preventInvalidNumberInput}
                     min="1"
                     required
                   />
