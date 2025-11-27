@@ -40,7 +40,7 @@ const waitForToast = async (page, message) => {
   );
 };
 
-test("PRCP 1 - Particpante registra transferencia como comprobante de pago", async ({
+test("PRCP 1 - Participante registra transferencia como comprobante de pago", async ({
   page,
 }) => {
   await loginAsParticipante(page);
@@ -52,19 +52,19 @@ test("PRCP 1 - Particpante registra transferencia como comprobante de pago", asy
 
   const mockImagePath = resolve("./e2e/ps5-mock.png");
   await page.locator("#file-upload").setInputFiles(mockImagePath);
-  await expect(page.getByText("ps5-mock.png")).toBeVisible();
+  await expect(page.getByRole("img", { name: "Comprobante de transferencia" })).toBeVisible();
 
-  await page.getByText("34").click();
+  await page.getByText("33").click();
 
   await page.getByRole("button", { name: "Enviar comprobante de" }).click();
 
   await waitForToast(
     page,
-    "Registro de comprobante exitoso! Tus comprbante procederan a ser verificado."
+    "Registro de comprobante exitoso! Tu comprobante procederá a ser verificado."
   );
 });
 
-test("PRCP 2 - Particpante no puede pagar sin seleccionar al menos un número", async ({
+test("PRCP 2 - Participante no puede pagar sin seleccionar al menos un número", async ({
   page,
 }) => {
   await loginAsParticipante(page);
@@ -77,7 +77,8 @@ test("PRCP 2 - Particpante no puede pagar sin seleccionar al menos un número", 
 
   const mockImagePath = resolve("./e2e/ps5-mock.png");
   await page.locator("#file-upload").setInputFiles(mockImagePath);
-  await expect(page.getByText("ps5-mock.png")).toBeVisible();
+  await expect(page.getByRole("img", { name: "Comprobante de transferencia" })).toBeVisible();
+  //await expect(page.getByText("ps5-mock.png")).toBeVisible();
 
   // Verificar que NO se puede pagar sin seleccionar números
   await expect(
@@ -85,7 +86,7 @@ test("PRCP 2 - Particpante no puede pagar sin seleccionar al menos un número", 
   ).not.toBeEnabled();
 });
 
-test("PRCP 3 - Particpante no puede pagar sin subir comprobante", async ({
+test("PRCP 3 - Participante no puede pagar sin subir comprobante", async ({
   page,
 }) => {
   await loginAsParticipante(page);
@@ -103,7 +104,7 @@ test("PRCP 3 - Particpante no puede pagar sin subir comprobante", async ({
   ).not.toBeEnabled();
 });
 
-test("PRCP 4 - Particpante puede seleccionar todos los boletos apartados sin transferencias en revisión a la vez", async ({
+test("PRCP 4 - Participante puede seleccionar todos los boletos apartados sin transferencias en revisión a la vez", async ({
   page,
 }) => {
   await loginAsParticipante(page);
@@ -127,7 +128,7 @@ test("PRCP 4 - Particpante puede seleccionar todos los boletos apartados sin tra
   }
 });
 
-test("PRCP 5 - Particpante no puede seleccionar boletos apartados con transferencias en revisión", async ({
+test("PRCP 5 - Participante no puede seleccionar boletos apartados con transferencias en revisión", async ({
   page,
 }) => {
   await loginAsParticipante(page);

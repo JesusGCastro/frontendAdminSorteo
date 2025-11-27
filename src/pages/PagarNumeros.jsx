@@ -6,6 +6,7 @@ import {
     getSession,
     getToken,
     pagarBoletosApartados,
+    obtenerBoletosApartadosPorUsuario
 } from "../services/api";
 import { toast } from "react-toastify";
 import "./PagarNumeros.css";
@@ -27,7 +28,7 @@ const PagarNumeros = () => {
 
     const nombreUsuario = usuarioLogueado?.nombre || "Usuario";
     const rolActual = "Participante";
-    
+
     // Estados del formulario de tarjeta
     const [numeroTarjeta, setNumeroTarjeta] = useState("");
     const [mes, setMes] = useState("");
@@ -40,7 +41,7 @@ const PagarNumeros = () => {
         let value = e.target.value.replace(/\D/g, ""); // Solo números
         value = value.slice(0, 16); // Máximo 16 dígitos
         // Formato visual: grupos de 4
-        value = value.replace(/(.{4})/g, "$1 ").trim(); 
+        value = value.replace(/(.{4})/g, "$1 ").trim();
         setNumeroTarjeta(value);
     };
 
@@ -66,10 +67,10 @@ const PagarNumeros = () => {
 
         const mesNum = parseInt(mes, 10);
         const anioNum = parseInt(anio, 10);
-        
+
         // Obtener fecha actual (año 2 dígitos)
         const hoy = new Date();
-        const anioActual = hoy.getFullYear() % 100; 
+        const anioActual = hoy.getFullYear() % 100;
         const mesActual = hoy.getMonth() + 1;
 
         // Validaciones
@@ -95,28 +96,32 @@ const PagarNumeros = () => {
 
     useEffect(() => {
         const cargarDatos = async () => {
-            if (!session.token || !usuarioId) { 
+            if (!session.token || !usuarioId) {
                 toast.error("Debes iniciar sesión para poder pagar.");
                 navigate("/login");
                 return;
             }
 
             try {
-                const [dataSorteo, dataBoletos] = await Promise.all([
+                const [dataSorteo, dataBoletos, dataBoletosApartados] = await Promise.all([
                     getSorteoById(id),
                     getBoletosPorSorteo(id),
-                ]);
+                    obtenerBoletosApartadosPorUsuario(id, session.token),
+                ]); 
+                setSorteo(dataSorteo);
+                setBoletosApartados(dataBoletosApartados);
 
+                /* Funcion anterior para filtrar boletos apartados del usuario
                 if (Array.isArray(dataBoletos)) {
                     const misBoletosApartados = dataBoletos.filter(
-                        (b) => b.estado === "APARTADO" && b.userId === usuarioId 
+                        (b) => b.estado === "APARTADO" && b.userId === usuarioId
                     );
                     setSorteo(dataSorteo);
                     setBoletosApartados(misBoletosApartados);
                 } else {
                     setSorteo(dataSorteo);
                     setBoletosApartados([]);
-                }
+                }*/
             } catch (error) {
                 toast.error("Error al cargar los datos del sorteo.");
                 console.error("Detalle del error en cargarDatos:", error);
@@ -136,18 +141,50 @@ const PagarNumeros = () => {
         );
     };
 
+    // Lógica portada de PagarTransferenciaNumeros: excluir boletos "PENDIENTE"
+    const handleToggleComprarTodos = (e) => {
+        const checked = e.target.checked;
+        setComprarTodos(checked);
+
+        if (checked) {
+            // Solo boletos que NO estén pendientes
+            const boletosHabilitados = boletosApartados
+                .filter((b) => b.payment?.estado !== "PENDIENTE")
+                .map((b) => b.numeroBoleto);
+
+            setBoletosSeleccionados(boletosHabilitados);
+        } else {
+            setBoletosSeleccionados([]);
+        }
+    };
+
+    /*
     const handleToggleComprarTodos = (e) => {
         const checked = e.target.checked;
         setComprarTodos(checked);
         setBoletosSeleccionados(
             checked ? boletosApartados.map((b) => b.numeroBoleto) : []
         );
-    };
+    };*/
 
+    /*
     useEffect(() => {
         setComprarTodos(
             boletosApartados.length > 0 &&
             boletosSeleccionados.length === boletosApartados.length
+        );
+    }, [boletosSeleccionados, boletosApartados]);
+    */
+
+    // Lógica portada de PagarTransferenciaNumeros: revisar solo los boletos habilitados
+    useEffect(() => {
+        const boletosHabilitados = boletosApartados.filter(
+            (b) => b.payment?.estado !== "PENDIENTE"
+        );
+
+        setComprarTodos(
+            boletosHabilitados.length > 0 &&
+            boletosSeleccionados.length === boletosHabilitados.length
         );
     }, [boletosSeleccionados, boletosApartados]);
 
@@ -162,6 +199,16 @@ const PagarNumeros = () => {
 
         if (boletosSeleccionados.length === 0) {
             toast.warning("Por favor selecciona los boletos que deseas pagar.");
+            return;
+        }
+
+        // Validación adicional para asegurar que no se intente pagar un boleto PENDIENTE
+        const boletosPendientesSeleccionados = boletosApartados.filter(
+            b => boletosSeleccionados.includes(b.numeroBoleto) && b.payment?.estado === "PENDIENTE"
+        );
+
+        if (boletosPendientesSeleccionados.length > 0) {
+            toast.error("No puedes pagar boletos que están actualmente 'En revisión'. Por favor, deselecciónalos.");
             return;
         }
 
@@ -274,7 +321,7 @@ const PagarNumeros = () => {
                                         />
                                     </div>
                                     {tarjetaExpirada && (
-                                        <div className="text-danger mt-1" style={{fontSize: "0.8rem"}}>
+                                        <div className="text-danger mt-1" style={{ fontSize: "0.8rem" }}>
                                             Tarjeta vencida
                                         </div>
                                     )}
@@ -283,7 +330,7 @@ const PagarNumeros = () => {
                                 <div className="col-5">
                                     <label className="form-label">Código de seguridad</label>
                                     <input
-                                        type="password" 
+                                        type="password"
                                         className="form-control text-center"
                                         placeholder="CVC"
                                         value={cvc}
@@ -312,20 +359,41 @@ const PagarNumeros = () => {
                             <label className="form-label">
                                 Seleccione los números a comprar
                             </label>
+                            <div className="leyenda mb-3">
+                                <span className="pendiente">En revisión</span>
+                                <span className="vendido">Seleccionado</span>
+                            </div>
                             <div className="boletos-a-pagar-grid mb-3">
                                 {boletosApartados.length > 0 ? (
-                                    boletosApartados.map((b) => (
-                                        <div
-                                            key={b.numeroBoleto}
-                                            className={`boleto-item ${boletosSeleccionados.includes(b.numeroBoleto)
-                                                ? "selected"
-                                                : ""
-                                                }`}
-                                            onClick={() => handleToggleSeleccion(b.numeroBoleto)}
-                                        >
-                                            {b.numeroBoleto}
-                                        </div>
-                                    ))
+                                    boletosApartados.map((b) => {
+                                        // CHECK DE ESTADO DE PAGO PORTADO
+                                        const isPendiente = b.payment?.estado === "PENDIENTE";
+                                        const isSelected = boletosSeleccionados.includes(
+                                            b.numeroBoleto
+                                        );
+
+                                        return (
+                                            <div
+                                                key={b.numeroBoleto}
+                                                // CLASES PORTADAS
+                                                className={`boleto-item 
+                                                    ${isSelected ? "selected" : ""}
+                                                    ${isPendiente ? "pendiente" : ""}
+                                                `}
+                                                onClick={() => {
+                                                    // DESHABILITAR SELECCIÓN SI ES PENDIENTE
+                                                    if (isPendiente) return; 
+                                                    handleToggleSeleccion(b.numeroBoleto);
+                                                }}
+                                                // CURSOR DESHABILITADO
+                                                style={{
+                                                    cursor: isPendiente ? "not-allowed" : "pointer",
+                                                }}
+                                            >
+                                                {b.numeroBoleto}
+                                            </div>
+                                        );
+                                    })
                                 ) : (
                                     <p className="text-muted small">
                                         No tienes boletos apartados para este sorteo.
@@ -333,7 +401,7 @@ const PagarNumeros = () => {
                                 )}
                             </div>
                             <div className="paginacion-boletos mb-3">
-                                {/* Paginación visual placeholder, si la necesitas funcional avísame */}
+                                {/* Paginación visual placeholder */}
                                 <button className="btn btn-sm" disabled>&lt;</button>
                                 <button className="btn btn-sm" disabled>&gt;</button>
                             </div>

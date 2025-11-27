@@ -17,7 +17,7 @@ const PagarTransferenciaNumeros = () => {
 
   const session = getSession();
   const usuarioLogueado = session.user?.user || session.user;
-  const usuarioId = usuarioLogueado?.id; // ✅ Extraer el ID una sola vez
+  const usuarioId = usuarioLogueado?.id; // Extraer el ID una sola vez
 
   const [sorteo, setSorteo] = useState(null);
   const [boletosApartados, setBoletosApartados] = useState([]);
@@ -87,6 +87,15 @@ const PagarTransferenciaNumeros = () => {
     setImagenArchivo(file);
   };
 
+  // Limpiar la URL del objeto de imagen cuando el componente se desmonte o el archivo cambie
+  useEffect(() => {
+    if (imagenArchivo) {
+        const objectUrl = URL.createObjectURL(imagenArchivo);
+        // Retorna una función de limpieza para revocar la URL
+        return () => URL.revokeObjectURL(objectUrl);
+    }
+  }, [imagenArchivo]);
+
   useEffect(() => {
     const boletosHabilitados = boletosApartados.filter(
       (b) => b.payment?.estado !== "PENDIENTE"
@@ -111,6 +120,7 @@ const PagarTransferenciaNumeros = () => {
       total,
     };
   };
+  
 
   const totalCompra = calcularTotal();
 
@@ -157,7 +167,7 @@ const PagarTransferenciaNumeros = () => {
 
       toast.update(loadingToast, {
         render:
-          "Registro de comprobante exitoso! Tus comprbante procederan a ser verificado.",
+          "Registro de comprobante exitoso! Tu comprobante procederá a ser verificado.",
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -236,9 +246,20 @@ const PagarTransferenciaNumeros = () => {
                     required
                   />
                   <span className="flex-grow-1 d-flex align-items-center px-3">
-                    {imagenArchivo
-                      ? imagenArchivo.name
-                      : "No se eligió ningún archivo"}
+                    {imagenArchivo ? (
+                        <img
+                            src={URL.createObjectURL(imagenArchivo)}
+                            alt="Comprobante de transferencia"
+                            style={{
+                                width: "60px",
+                                height: "60px",
+                                objectFit: "cover",
+                                borderRadius: "8px"
+                            }}
+                        />
+                    ) : (
+                        "No se eligió ningún archivo"
+                    )}
                   </span>
                 </div>
               </div>
