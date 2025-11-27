@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { resolve } from "path";
 
-
+// Función para iniciar sesión como participante
 const loginAsParticipante = async (page) => {
   await page.goto("http://localhost:5173/frontendAdminSorteo/");
   await page.getByTestId("profile").nth(1).click();
