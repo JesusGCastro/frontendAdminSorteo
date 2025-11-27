@@ -29,6 +29,7 @@
 .leyenda .disponible::before,
 .leyenda .apartado::before,
 .leyenda .vendido::before,
+.leyenda .pendiente::before,
 .leyenda .mi_comprado::before,
 .leyenda .mi_apartado::before,
 .leyenda .seleccionado::before {
@@ -45,10 +46,13 @@
   border: 1px solid #c0a0e0;
 }
 
+.leyenda .pendiente::before {
+  background-color: #f5d88e;
+}
+
 .leyenda .apartado::before {
   background-color: #e37b7b;
 }
-
 .leyenda .vendido::before {
   background-color: #c19ae8;
 }
