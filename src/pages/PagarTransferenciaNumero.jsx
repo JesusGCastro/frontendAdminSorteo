@@ -348,7 +348,7 @@ const PagarTransferenciaNumeros = () => {
               <button
                 onClick={handleRegistrarComprobante}
                 className="btn btn-comprar"
-                disabled={boletosSeleccionados.length === 0}
+                disabled={boletosSeleccionados.length === 0 || !imagenArchivo}
               >
                 Enviar comprobante de transferencia
               </button>
