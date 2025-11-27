@@ -1,11 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { getSession } from "../api";
+import { getSorteoDetailsById, actualizarSorteo, uploadImageToCloudinary } from "../services/api";
+import { toast } from 'react-toastify';
 
 const EditarSorteo = () => {
     const navigate = useNavigate();
     const session = getSession();
+    const { id } = useParams();
+    const [sorteo, setSorteo] = useState(null);
+    const [backup, setBackup] = useState({});
+    const [diasRestantes, setDiasRestantes] = useState(0);
 
     // Mostrar nombre o "Sorteador Anonimo"
     const nombreUsuario = session?.user?.nombre || "Sorteador Anonimo";
@@ -14,22 +21,87 @@ const EditarSorteo = () => {
         rolActual.charAt(0).toUpperCase() + rolActual.slice(1).toLowerCase();
 
     const [formData, setFormData] = useState({
-        nombreRifa: "",
+        nombre: "",
         premio: "",
         descripcion: "",
-        precioBoletoPaquete: "",
-        numeroBoletosIncluidos: "",
-        rangoInicio: "",
-        rangoFin: "",
+        precioBoleto: "",
+        cantidadMaximaBoletos: "",
+        fechaInicialVentaBoletos: "",
+        fechaFinalVentaBoletos: "",
         fechaRealizacion: "",
-        limiteApartados: "",
-        imagen: null,
-        estado: "activado",
+        limiteBoletosPorUsuario: "",
+        urlImagen: "",
+        estado: "activo",
+        montoRecaudado: "",
+        montoPorRecaudar: "",
+        boletosComprados: "",
+        boletosApartados: "",
+        totalBoletosDisponibles: "",
     });
+
+    useEffect(() => {
+        const cargarDetallesSorteo = async () => {
+            if (!id) return;
+
+            try {
+                const data = await getSorteoDetailsById(id);
+
+                const mapeado = {
+                    nombre: data.raffle.nombre || "",
+                    premio: data.raffle.premio || "",
+                    descripcion: data.raffle.descripcion || "",
+                    precioBoleto: data.raffle.precioBoleto || "",
+                    cantidadMaximaBoletos: data.raffle.cantidadMaximaBoletos || "",
+                    fechaInicialVentaBoletos: formatDate(data.raffle.fechaInicialVentaBoletos),
+                    fechaFinalVentaBoletos: formatDate(data.raffle.fechaFinalVentaBoletos),
+                    fechaRealizacion: formatDate(data.raffle.fechaRealizacion),
+                    limiteBoletosPorUsuario: data.raffle.limiteBoletosPorUsuario || "",
+                    urlImagen: data.raffle.urlImagen || "",
+                    estado: data.raffle.estado || "activo",
+
+                    montoRecaudado: data.estadisticas?.montoRecaudado || "",
+                    montoPorRecaudar: data.estadisticas?.montoPorRecaudar || "",
+                    boletosComprados: data.estadisticas?.boletosComprados || "",
+                    boletosApartados: data.estadisticas?.boletosApartados || "",
+                    totalBoletosDisponibles: data.estadisticas?.totalBoletosDisponibles || ""
+                };
+
+                setFormData(mapeado);
+
+                // **Backup REAL del estado inicial**
+                setBackup(mapeado);
+            } catch (error) {
+                console.error("Error al cargar sorteo:", error);
+            }
+        };
+
+        cargarDetallesSorteo();
+    }, [id]);
+
+    useEffect(() => {
+        if (!formData.fechaFinalVentaBoletos) return;
+
+        const hoy = new Date();
+        const fin = new Date(formData.fechaFinalVentaBoletos);
+
+        let diff = fin - hoy;
+        let dias = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+        if (dias < 0) dias = 0;
+
+        setDiasRestantes(dias);
+    }, [formData.fechaInicialVentaBoletos, formData.fechaFinalVentaBoletos]);
+
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+        return dateString.split("T")[0]; // toma solo YYYY-MM-DD
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({
+
+        setFormData(prev => ({
             ...prev,
             [name]: value,
         }));
@@ -37,9 +109,12 @@ const EditarSorteo = () => {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        setFormData((prev) => ({
+        if (!file) return;
+
+        // Guardar el archivo en el formData
+        setFormData(prev => ({
             ...prev,
-            imagen: file,
+            urlImagen: file
         }));
     };
 
@@ -47,9 +122,142 @@ const EditarSorteo = () => {
         navigate(-1); // Volver a la pagina anterior
     };
 
-    const handleEditarSorteo = () => {
-        console.log("Editar sorteo:", formData);
-        // Aquí logica del back
+    const handleValidacionBlur = (e) => {
+        const { name } = e.target;
+
+        const valido = revisarDatosValidos();
+
+        if (!valido) {
+            setFormData(backup); // revertir TODO
+        }
+    };
+
+    //Calcula la cantidad de dias para que termine el periodo de ventas de boletos
+    const calcularDiasRestantes = () => {
+        const hoy = new Date();
+        const fin = new Date(formData.fechaFinalVentaBoletos);
+
+        // Si hoy es despues de la fecha de fin, regresar 0
+        if (hoy > fin) return 0;
+
+        const diffTime = fin - hoy;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 ? diffDays : 0;
+    }
+
+    const hayCambios = () => {
+        return JSON.stringify(formData) !== JSON.stringify(backup);
+    };
+
+    const handleEditarSorteo = async () => {
+        console.log("Intentando editar sorteo con datos:", formData);
+
+        if (!hayCambios()) {
+            toast.error("No has cambiado nada.");
+            return;
+        }
+        if (!revisarDatosValidos()) return;
+
+        try {
+            let urlImagenFinal = formData.urlImagen;
+            const urlOriginal = backup.urlImagenOriginal;
+
+            // Caso 1: Usuario NO cambió nada → sigue siendo string y es igual
+            if (typeof formData.urlImagen === "string" && formData.urlImagen === urlOriginal) {
+                urlImagenFinal = urlOriginal;
+            }
+
+            // Caso 2: Usuario subió archivo nuevo (File)
+            else if (formData.urlImagen instanceof File) {
+                urlImagenFinal = await uploadImageToCloudinary(formData.urlImagen);
+            }
+
+            // Caso 3: Usuario pegó una nueva URL (string distinta)
+            else if (typeof formData.urlImagen === "string" && formData.urlImagen !== urlOriginal) {
+                urlImagenFinal = formData.urlImagen;
+            }
+
+            const dataFinal = {
+                ...formData,
+                urlImagen: urlImagenFinal,
+                precioBoleto: Number(formData.precioBoleto),
+                cantidadMaximaBoletos: Number(formData.cantidadMaximaBoletos),
+                limiteBoletosPorUsuario: Number(formData.limiteBoletosPorUsuario),
+            };
+
+            await actualizarSorteo(id, dataFinal, session.token);
+
+            toast.success("Sorteo actualizado exitosamente.");
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al actualizar el sorteo. Intenta de nuevo.");
+        }
+    };
+
+    const revisarDatosValidos = () => {
+        const {
+            descripcion,
+            urlImagen,
+            fechaInicialVentaBoletos,
+            fechaFinalVentaBoletos,
+            fechaRealizacion,
+            limiteBoletosPorUsuario
+        } = formData;
+
+        // Descripción: no vacía ni solo espacios
+        if (!descripcion || descripcion.trim() === "") {
+            toast.error("La descripción no puede estar vacía.");
+            return;
+        }
+
+        // Imagen: no vacía, null o solo espacios
+        if (!urlImagen) {
+            toast.error("Debes seleccionar una imagen.");
+            return;
+        }
+        if (typeof urlImagen === "string" && urlImagen.trim() === "") {
+            toast.error("La imagen no puede estar vacía.");
+            return;
+        }
+
+        // Fechas no null
+        if (!fechaInicialVentaBoletos || !fechaFinalVentaBoletos || !fechaRealizacion) {
+            toast.error("Todas las fechas son obligatorias.");
+            return;
+        }
+
+        const fi = new Date(fechaInicialVentaBoletos);
+        const ff = new Date(fechaFinalVentaBoletos);
+        const fr = new Date(fechaRealizacion);
+
+        // Inicio < Fin del periodo de ventas
+        if (fi >= ff) {
+            toast.error("La fecha de inicio debe ser antes que la fecha de fin.");
+            return;
+        }
+
+        // Fin > Realización (el sorteo se realiza después del fin de ventas)
+        if (ff >= fr) {
+            toast.error("La fecha de realización debe ser después del fin del periodo de ventas.");
+            return;
+        }
+
+        // Límite de apartados (opcional pero si existe debe ser entero positivo)
+        if (limiteBoletosPorUsuario !== "" && limiteBoletosPorUsuario !== null) {
+            const n = Number(limiteBoletosPorUsuario);
+            if (!Number.isInteger(n) || n < 1) {
+                toast.error("El límite de apartados debe ser un número entero positivo (mínimo 1).");
+                return;
+            }
+        }
+        return true;
+    }
+
+    const handleEstadoToggle = (nuevoEstado) => {
+        setFormData((prev) => ({
+            ...prev,
+            estado: nuevoEstado
+        }));
     };
 
     return (
@@ -97,6 +305,7 @@ const EditarSorteo = () => {
                                     }}
                                     value={formData.descripcion}
                                     onChange={handleInputChange}
+                                    onBlur={handleValidacionBlur}
                                     rows="4"
                                 />
                             </div>
@@ -108,7 +317,7 @@ const EditarSorteo = () => {
                                 </label>
                                 <input
                                     type="number"
-                                    name="precioBoletoPaquete"
+                                    name="precioBoleto"
                                     className="form-control border-0"
                                     readOnly
                                     style={{
@@ -116,7 +325,7 @@ const EditarSorteo = () => {
                                         borderRadius: "10px",
                                         padding: "12px 16px"
                                     }}
-                                    value={formData.precioBoletoPaquete}
+                                    value={formData.precioBoleto}
                                     onChange={handleInputChange}
                                     min="0"
                                     step="0.01"
@@ -129,7 +338,7 @@ const EditarSorteo = () => {
                                 </label>
                                 <input
                                     type="number"
-                                    name="numeroBoletosIncluidos"
+                                    name="cantidadMaximaBoletos"
                                     className="form-control border-0"
                                     readOnly
                                     style={{
@@ -137,7 +346,7 @@ const EditarSorteo = () => {
                                         borderRadius: "10px",
                                         padding: "12px 16px"
                                     }}
-                                    value={formData.numeroBoletosIncluidos}
+                                    value={formData.cantidadMaximaBoletos}
                                     onChange={handleInputChange}
                                     min="1"
                                 />
@@ -174,10 +383,41 @@ const EditarSorteo = () => {
                                         accept="image/*"
                                         onChange={handleFileChange}
                                     />
-                                    <span className="flex-grow-1 d-flex align-items-center px-3"
-                                        style={{ color: "#666", fontSize: "14px" }}>
-                                        {formData.imagen ? formData.imagen.name : "No se eligió ningún archivo"}
+                                    <span
+                                        className="flex-grow-1 d-flex align-items-center px-3"
+                                        style={{ color: "#666", fontSize: "14px" }}
+                                    >
+                                        {formData.urlImagen ? (
+                                            typeof formData.urlImagen === "string" ? (
+                                                <img
+                                                    src={formData.urlImagen}
+                                                    alt="Imagen del sorteo"
+                                                    style={{
+                                                        width: "60px",
+                                                        height: "60px",
+                                                        objectFit: "cover",
+                                                        borderRadius: "8px"
+                                                    }}
+                                                />
+                                            ) : (
+                                                <img
+                                                    src={URL.createObjectURL(formData.urlImagen)}
+                                                    alt="Nueva imagen"
+                                                    style={{
+                                                        width: "60px",
+                                                        height: "60px",
+                                                        objectFit: "cover",
+                                                        borderRadius: "8px"
+                                                    }}
+                                                />
+                                            )
+                                        ) : (
+                                            "No se eligió ningún archivo"
+                                        )}
+
                                     </span>
+
+
                                 </div>
                             </div>
 
@@ -191,31 +431,46 @@ const EditarSorteo = () => {
                                         type="button"
                                         className="btn"
                                         style={{
-                                            backgroundColor: formData.estado === "activado" ? "#DAA1ED" : "#f3e5f5",
-                                            color: formData.estado === "activado" ? "white" : "#555",
+                                            backgroundColor: formData.estado === "activo" ? "#DAA1ED" : "#f3e5f5",
+                                            color: formData.estado === "activo" ? "white" : "#555",
                                             borderRadius: "10px",
                                             padding: "8px 20px",
                                             border: "none",
                                             fontWeight: "500"
                                         }}
-                                        onClick={() => handleEstadoToggle("activado")}
+                                        onClick={() => handleEstadoToggle("activo")}
                                     >
-                                        Activado
+                                        Activo
                                     </button>
                                     <button
                                         type="button"
                                         className="btn"
                                         style={{
-                                            backgroundColor: formData.estado === "desactivado" ? "#DAA1ED" : "#f3e5f5",
-                                            color: formData.estado === "desactivado" ? "white" : "#555",
+                                            backgroundColor: formData.estado === "inactivo" ? "#DAA1ED" : "#f3e5f5",
+                                            color: formData.estado === "inactivo" ? "white" : "#555",
                                             borderRadius: "10px",
                                             padding: "8px 20px",
                                             border: "none",
                                             fontWeight: "500"
                                         }}
-                                        onClick={() => handleEstadoToggle("desactivado")}
+                                        onClick={() => handleEstadoToggle("inactivo")}
                                     >
-                                        Desactivado
+                                        Inactivo
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn"
+                                        style={{
+                                            backgroundColor: formData.estado === "finalizado" ? "#DAA1ED" : "#f3e5f5",
+                                            color: formData.estado === "finalizado" ? "white" : "#555",
+                                            borderRadius: "10px",
+                                            padding: "8px 20px",
+                                            border: "none",
+                                            fontWeight: "500"
+                                        }}
+                                        onClick={() => handleEstadoToggle("finalizado")}
+                                    >
+                                        Finalizado
                                     </button>
                                 </div>
                             </div>
@@ -251,33 +506,46 @@ const EditarSorteo = () => {
                                         <label className="form-label" style={{ color: "#666", fontSize: "12px" }}>Inicio</label>
                                         <input
                                             type="date"
-                                            name="rangoInicio"
+                                            name="fechaInicialVentaBoletos"
                                             className="form-control border-0"
                                             style={{
                                                 backgroundColor: "#f3e5f5",
                                                 borderRadius: "10px",
                                                 padding: "12px 16px"
                                             }}
-                                            value={formData.rangoInicio}
+                                            value={formData.fechaInicialVentaBoletos}
                                             onChange={handleInputChange}
+                                            onBlur={handleValidacionBlur}
                                         />
                                     </div>
                                     <div className="col-6">
                                         <label className="form-label" style={{ color: "#666", fontSize: "12px" }}>Fin</label>
                                         <input
                                             type="date"
-                                            name="rangoFin"
+                                            name="fechaFinalVentaBoletos"
                                             className="form-control border-0"
                                             style={{
                                                 backgroundColor: "#f3e5f5",
                                                 borderRadius: "10px",
                                                 padding: "12px 16px"
                                             }}
-                                            value={formData.rangoFin}
+                                            value={formData.fechaFinalVentaBoletos}
                                             onChange={handleInputChange}
+                                            onBlur={handleValidacionBlur}
                                         />
                                     </div>
-                                    <div style={{ fontSize: "12px", color: "#000000ff", textAlign: "center", marginTop: "15px" }}>X dias para terminar el periodo de ventas</div>
+                                    {calcularDiasRestantes() !== 0 && (
+                                        <div
+                                            style={{
+                                                fontSize: "12px",
+                                                color: "#000000ff",
+                                                textAlign: "center",
+                                                marginTop: "15px"
+                                            }}
+                                        >
+                                            <p>Faltan {diasRestantes} días para que termine el sorteo</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -305,7 +573,7 @@ const EditarSorteo = () => {
                                 </label>
                                 <input
                                     type="number"
-                                    name="limiteApartados"
+                                    name="limiteBoletosPorUsuario"
                                     className="form-control border-0"
                                     style={{
                                         backgroundColor: "#f3e5f5",
@@ -313,8 +581,9 @@ const EditarSorteo = () => {
                                         padding: "12px 16px",
                                         width: "100px"
                                     }}
-                                    value={formData.limiteApartados}
+                                    value={formData.limiteBoletosPorUsuario}
                                     onChange={handleInputChange}
+                                    onBlur={handleValidacionBlur}
                                     min="0"
                                     placeholder=""
                                 />
@@ -333,7 +602,7 @@ const EditarSorteo = () => {
                                 <input
                                     type="text"
                                     readOnly
-                                    value="$200,450"
+                                    value={formData.montoRecaudado}
                                     className="form-control border-0"
                                     style={{
                                         backgroundColor: "#d8d8d8",
@@ -348,7 +617,7 @@ const EditarSorteo = () => {
                                 <input
                                     type="text"
                                     readOnly
-                                    value="$100,261"
+                                    value={formData.montoPorRecaudar}
                                     className="form-control border-0"
                                     style={{
                                         backgroundColor: "#d8d8d8",
@@ -365,7 +634,7 @@ const EditarSorteo = () => {
                                 <input
                                     type="text"
                                     readOnly
-                                    value="2000"
+                                    value={formData.boletosComprados}
                                     className="form-control border-0"
                                     style={{
                                         backgroundColor: "#d8d8d8",
@@ -380,7 +649,7 @@ const EditarSorteo = () => {
                                 <input
                                     type="text"
                                     readOnly
-                                    value="1000"
+                                    value={formData.boletosApartados}
                                     className="form-control border-0"
                                     style={{
                                         backgroundColor: "#d8d8d8",
@@ -395,7 +664,7 @@ const EditarSorteo = () => {
                                 <input
                                     type="text"
                                     readOnly
-                                    value="1000"
+                                    value={formData.totalBoletosDisponibles}
                                     className="form-control border-0"
                                     style={{
                                         backgroundColor: "#d8d8d8",

@@ -1,8 +1,8 @@
 // src/api.js
 const API_URL = "https://apigatewaysorteos.onrender.com";
 const RAFFLES_PATH = "api/raffles";
-const IMGBB_API_KEY= "b234eceb83416a07c80c0d0397f718ad"
-const CLOUDINARY_CLOUD_NAME = "dtejuoctt" ;
+const IMGBB_API_KEY = "b234eceb83416a07c80c0d0397f718ad"
+const CLOUDINARY_CLOUD_NAME = "dtejuoctt";
 const CLOUDINARY_UPLOAD_PRESET = "sorteos";
 const USERS_PATH = "api/users";
 
@@ -11,21 +11,21 @@ const USERS_PATH = "api/users";
 // Métodos para manejar sorteos
 
 // Crear sorteo
- export const crearSorteo = async (sorteoData, token) => {
-   const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, { 
-     method: "POST",
-     headers: {
-       "Content-Type": "application/json",
-       "Authorization": `Bearer ${token}`,
-     },
-     body: JSON.stringify(sorteoData),
-   });
-   if (!res.ok) {
-     throw new Error(`Error al crear sorteo: ${res.status}`);
-   }
-   const data = await res.json();
-   return data;
- }
+export const crearSorteo = async (sorteoData, token) => {
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(sorteoData),
+  });
+  if (!res.ok) {
+    throw new Error(`Error al crear sorteo: ${res.status}`);
+  }
+  const data = await res.json();
+  return data;
+}
 
 /*export const crearSorteo = async (formData, token) => {
   const res = await fetch(`${API_URL}/${RAFFLES_PATH}`, {
@@ -107,6 +107,36 @@ export const getSorteoById = async (id) => {
   if (!res.ok) {
     throw new Error(`Error al obtener sorteo: ${res.status}`);
   }
+  const data = await res.json();
+  return data;
+};
+
+// Obtener sorteo por ID
+export const getSorteoDetailsById = async (id) => {
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/summary/${id}`, {
+    method: "GET",
+  });
+  if (!res.ok) {
+    throw new Error(`Error al obtener sorteo con detalles: ${res.status}`);
+  }
+  const data = await res.json();
+  return data;
+};
+
+export const actualizarSorteo = async (sorteoId, sorteoData, token) => {
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/admin/update/${sorteoId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(sorteoData),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error al actualizar sorteo: ${res.status}`);
+  }
+
   const data = await res.json();
   return data;
 };
@@ -434,52 +464,52 @@ export const getUserProfile = async (token) => {
 };*/
 
 export const uploadImageToCloudinary = async (file) => {
-    if (!file) throw new Error("Archivo de imagen no proporcionado.");
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    
-    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+  if (!file) throw new Error("Archivo de imagen no proporcionado.");
 
-    try {
-        const res = await fetch(cloudinaryUrl, {
-            method: 'POST',
-            body: formData,
-        });
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-        if (!res.ok) {
-            const error = await res.json();
-            throw new Error(`Error al subir imagen a Cloudinary: ${error.error.message}`);
-        }
+  const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
-        const data = await res.json();
-        return data.secure_url;
-        
-    } catch (error) {
-        console.error("Fallo la subida a Cloudinary:", error);
-        throw error;
+  try {
+    const res = await fetch(cloudinaryUrl, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`Error al subir imagen a Cloudinary: ${error.error.message}`);
     }
+
+    const data = await res.json();
+    return data.secure_url;
+
+  } catch (error) {
+    console.error("Fallo la subida a Cloudinary:", error);
+    throw error;
+  }
 };
 
 export const crearSorteoConImagen = async (sorteoData, imageFile, token) => {
-    const imageUrl = await uploadImageToCloudinary(imageFile);
+  const imageUrl = await uploadImageToCloudinary(imageFile);
 
-    const finalSorteoData = { 
-        ...sorteoData, 
-        urlImagen: imageUrl 
-    };
+  const finalSorteoData = {
+    ...sorteoData,
+    urlImagen: imageUrl
+  };
 
-    return crearSorteo(finalSorteoData, token);
+  return crearSorteo(finalSorteoData, token);
 };
 
 // Pagar boletos apartados (Confirmar compra en línea)
 export const pagarBoletosApartados = async (raffleId, tickets, monto, claveRastreo, token) => {
   // El backend espera: tickets (array), claveRastreo (string), monto (decimal)
-  const bodyData = { 
-    tickets, 
-    monto, 
-    claveRastreo 
+  const bodyData = {
+    tickets,
+    monto,
+    claveRastreo
   };
 
   const res = await fetch(`${API_URL}/${RAFFLES_PATH}/tickets/pay/${raffleId}`, {
