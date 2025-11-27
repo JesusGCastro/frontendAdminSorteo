@@ -54,7 +54,7 @@ test("PRCP 1 - Participante registra transferencia como comprobante de pago", as
   await page.locator("#file-upload").setInputFiles(mockImagePath);
   await expect(page.getByRole("img", { name: "Comprobante de transferencia" })).toBeVisible();
 
-  await page.getByText("33").click();
+  await page.getByText("48").click();
 
   await page.getByRole("button", { name: "Enviar comprobante de" }).click();
 
