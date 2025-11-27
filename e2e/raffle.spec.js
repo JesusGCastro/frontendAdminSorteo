@@ -86,7 +86,7 @@ test("PAN 6. Verificar que número ocupado está deshabilitado", async ({
 test("PAN 7. Apartar numero sin cuenta.", async ({ page }) => {
   await page.goto('/');
   await page.getByRole("img", { name: "Navidad" }).click();
-  await page.getByRole("button", { name: "52" }).click();
+  await page.getByRole("button", { name: "50" }).click();
   page.once("dialog", (dialog) => {
     console.log(`Dialog message: ${dialog.message()}`);
     dialog.dismiss().catch(() => {});
@@ -105,14 +105,7 @@ test("PAN 8. Apartar numero superando el limite por participante.", async ({
   await page.locator('input[type="password"]').fill("123456");
   await page.getByRole("button", { name: "Iniciar Sesión" }).click();
   await page.getByRole("img", { name: "Navidad" }).click();
-  await page.getByRole("button", { name: "2", exact: true }).click();
-  await page.getByRole("button", { name: "30" }).click();
-  await page.getByRole("button", { name: "23" }).click();
-  await page.getByRole("button", { name: "24" }).click();
-  await page.getByRole("button", { name: "25" }).click();
-  await page.getByRole("button", { name: "18", exact: true }).click();
-  await page.getByRole("button", { name: "26" }).click();
-  await page.getByRole("button", { name: "27" }).click();
+  await page.getByRole("button", { name: "51", exact: true }).click();
   page.once("dialog", (dialog) => {
     console.log(`Dialog message: ${dialog.message()}`);
     dialog.dismiss().catch(() => {});
