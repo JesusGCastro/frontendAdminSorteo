@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 import { resolve } from "path";
 
 // Función para iniciar sesión como participante
@@ -14,13 +14,13 @@ const loginAsParticipante = async (page) => {
 const waitForToast = async (page, message) => {
   // Esperamos 500 ms
   await page.waitForTimeout(500);
- 
+
   const selectors = [
     `text="${message}"`,
     `text=${message}`,
     `*:has-text("${message}")`,
     `[class*="toast"]:has-text("${message}")`,
-    `div:has-text("${message}")`
+    `div:has-text("${message}")`,
   ];
 
   for (const selector of selectors) {
@@ -35,100 +35,111 @@ const waitForToast = async (page, message) => {
   }
 
   await page.screenshot({ path: `test-results/toast-error-${Date.now()}.png` });
-  throw new Error(`Toast no encontrado con mensaje: "${message}". Ver screenshot en test-results/`);
+  throw new Error(
+    `Toast no encontrado con mensaje: "${message}". Ver screenshot en test-results/`
+  );
 };
 
+test("PRCP 1 - Particpante registra transferencia como comprobante de pago", async ({
+  page,
+}) => {
+  await loginAsParticipante(page);
 
-test('PRCP 1 - Particpante registra transferencia como comprobante de pago', async ({ page }) => {
+  await page.getByRole("img", { name: "Regreso a Clases Solidario" }).click();
+  await page.getByRole("button", { name: "Pagar Números Apartados" }).click();
+  await page.getByRole("button", { name: " Transferencia Bancaria" }).click();
+  await page.getByText("Elegir archivo").click();
 
-    await loginAsParticipante(page);
+  const mockImagePath = resolve("./e2e/ps5-mock.png");
+  await page.locator("#file-upload").setInputFiles(mockImagePath);
+  await expect(page.getByText("ps5-mock.png")).toBeVisible();
 
-    await page.getByRole('img', { name: 'Regreso a Clases Solidario' }).click();
-    await page.getByRole('button', { name: 'Pagar Números Apartados' }).click();
-    await page.getByRole('button', { name: ' Transferencia Bancaria' }).click();
-    await page.getByText('Elegir archivo').click();
-    
-    const mockImagePath = resolve("./e2e/ps5-mock.png");
-    await page.locator("#file-upload").setInputFiles(mockImagePath);
-    await expect(page.getByText("ps5-mock.png")).toBeVisible();
+  await page.getByText("34").click();
 
-    await page.getByText('36').click();
+  await page.getByRole("button", { name: "Enviar comprobante de" }).click();
 
-    await page.getByRole('button', { name: 'Enviar comprobante de' }).click();
-
-    await waitForToast(page, "Registro de comprobante exitoso! Tus comprbante procederan a ser verificado.");
+  await waitForToast(
+    page,
+    "Registro de comprobante exitoso! Tus comprbante procederan a ser verificado."
+  );
 });
 
-test ('PRCP 2 - Particpante no puede pagar sin seleccionar al menos un número', async ({ page }) => {
+test("PRCP 2 - Particpante no puede pagar sin seleccionar al menos un número", async ({
+  page,
+}) => {
+  await loginAsParticipante(page);
 
-    await loginAsParticipante(page);
+  await page.getByRole("img", { name: "Regreso a Clases Solidario" }).click();
+  await page.getByRole("button", { name: "Pagar Números Apartados" }).click();
+  await page.getByRole("button", { name: " Transferencia Bancaria" }).click();
 
-    await page.getByRole('img', { name: 'Regreso a Clases Solidario' }).click();
-    await page.getByRole('button', { name: 'Pagar Números Apartados' }).click();
-    await page.getByRole('button', { name: ' Transferencia Bancaria' }).click();
+  await page.getByText("Elegir archivo").click();
 
-    
-    await page.getByText('Elegir archivo').click();
-    
-    const mockImagePath = resolve("./e2e/ps5-mock.png");
-    await page.locator("#file-upload").setInputFiles(mockImagePath);
-    await expect(page.getByText("ps5-mock.png")).toBeVisible();
+  const mockImagePath = resolve("./e2e/ps5-mock.png");
+  await page.locator("#file-upload").setInputFiles(mockImagePath);
+  await expect(page.getByText("ps5-mock.png")).toBeVisible();
 
-    // Verificar que NO se puede pagar sin seleccionar números
-    await expect(
-        page.getByText("Enviar comprobante de transferencia")
-    ).not.toBeEnabled();
+  // Verificar que NO se puede pagar sin seleccionar números
+  await expect(
+    page.getByText("Enviar comprobante de transferencia")
+  ).not.toBeEnabled();
 });
 
-test('PRCP 3 - Particpante no puede pagar sin subir comprobante', async ({ page }) => {
+test("PRCP 3 - Particpante no puede pagar sin subir comprobante", async ({
+  page,
+}) => {
+  await loginAsParticipante(page);
+  await page.getByRole("img", { name: "Regreso a Clases Solidario" }).click();
+  await page.getByRole("button", { name: "Pagar Números Apartados" }).click();
+  await page.getByRole("button", { name: " Transferencia Bancaria" }).click();
 
-    await loginAsParticipante(page);
-    await page.getByRole('img', { name: 'Regreso a Clases Solidario' }).click();
-    await page.getByRole('button', { name: 'Pagar Números Apartados' }).click();
-    await page.getByRole('button', { name: ' Transferencia Bancaria' }).click();
+  // Seleccionar un número
+  await page.getByText("37").click();
 
-    // Seleccionar un número
-    await page.getByText('37').click();
+  // Verificar que NO se puede pagar sin subir comprobante
 
-    // Verificar que NO se puede pagar sin subir comprobante
-
-    await expect(
-        page.getByText("Enviar comprobante de transferencia")
-    ).not.toBeEnabled();
+  await expect(
+    page.getByText("Enviar comprobante de transferencia")
+  ).not.toBeEnabled();
 });
 
-test('PRCP 4 - Particpante puede seleccionar todos los boletos apartados sin transferencias en revisión a la vez', async ({ page }) => {
+test("PRCP 4 - Particpante puede seleccionar todos los boletos apartados sin transferencias en revisión a la vez", async ({
+  page,
+}) => {
+  await loginAsParticipante(page);
+  await page.getByRole("img", { name: "Regreso a Clases Solidario" }).click();
+  await page.getByRole("button", { name: "Pagar Números Apartados" }).click();
+  await page.getByRole("button", { name: " Transferencia Bancaria" }).click();
 
-    await loginAsParticipante(page);
-    await page.getByRole('img', { name: 'Regreso a Clases Solidario' }).click();
-    await page.getByRole('button', { name: 'Pagar Números Apartados' }).click();
-    await page.getByRole('button', { name: ' Transferencia Bancaria' }).click();
+  const habilitados = page.locator(".boleto.habilitado"); // boletos que sí deben seleccionarse
+  const pendientes = page.locator(".boleto.pendiente"); // boletos que no deben seleccionarse
 
-    const habilitados = page.locator('.boleto.habilitado');   // boletos que sí deben seleccionarse
-    const pendientes = page.locator('.boleto.pendiente'); // boletos que no deben seleccionarse
+  await page.getByRole("checkbox", { name: "Pagar todos los numeros" }).check();
 
-    await page.getByRole('checkbox', { name: 'Pagar todos los numeros' }).check();
+  const habilitadosCount = await habilitados.count();
+  for (let i = 0; i < habilitadosCount; i++) {
+    await expect(habilitados.nth(i)).toHaveClass(/selected/);
+  }
 
-    const habilitadosCount = await habilitados.count();
-    for (let i = 0; i < habilitadosCount; i++) {
-        await expect(habilitados.nth(i)).toHaveClass(/selected/);
-    }
-
-    const pendientesCount = await pendientes.count();
-    for (let i = 0; i < pendientesCount; i++) {
-        await expect(pendientes.nth(i)).not.toHaveClass(/selected/);
-    }
+  const pendientesCount = await pendientes.count();
+  for (let i = 0; i < pendientesCount; i++) {
+    await expect(pendientes.nth(i)).not.toHaveClass(/selected/);
+  }
 });
 
+test("PRCP 5 - Particpante no puede seleccionar boletos apartados con transferencias en revisión", async ({
+  page,
+}) => {
+  await loginAsParticipante(page);
+  await page.getByRole("img", { name: "Regreso a Clases Solidario" }).click();
+  await page.getByRole("button", { name: "Pagar Números Apartados" }).click();
+  await page.getByRole("button", { name: " Transferencia Bancaria" }).click();
 
-test('PRCP 5 - Particpante no puede seleccionar boletos apartados con transferencias en revisión', async ({ page }) => {
+  const boletoPendiente = page.getByText("29");
 
-    await loginAsParticipante(page);
-    await page.getByRole('img', { name: 'Regreso a Clases Solidario' }).click();
-    await page.getByRole('button', { name: 'Pagar Números Apartados' }).click();
-    await page.getByRole('button', { name: ' Transferencia Bancaria' }).click();
+  // Simular intento de clic
+  await boletoPendiente.click();
 
-    await expect(
-        page.getByText("29")
-    ).not.toBeEnabled();
+  // Verificar que NO se seleccione
+  await expect(boletoPendiente).not.toHaveClass(/selected/);
 });
