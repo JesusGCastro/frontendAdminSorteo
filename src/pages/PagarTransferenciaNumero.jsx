@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   getSorteoById,
-  getBoletosPorSorteo,
+  obtenerBoletosApartadosPorUsuario,
   getSession,
   getToken,
-  pagarBoletosApartados,
+  registarTransBoletosApartados,
+  uploadImageToCloudinary,
 } from "../services/api";
 import { toast } from "react-toastify";
 import "./PagarNumeros.css";
@@ -16,6 +17,7 @@ const PagarTransferenciaNumeros = () => {
 
   const session = getSession();
   const usuarioLogueado = session.user?.user || session.user;
+  const usuarioId = usuarioLogueado?.id; // ✅ Extraer el ID una sola vez
 
   const [sorteo, setSorteo] = useState(null);
   const [boletosApartados, setBoletosApartados] = useState([]);
@@ -28,37 +30,22 @@ const PagarTransferenciaNumeros = () => {
   const nombreUsuario = usuarioLogueado?.nombre || "Usuario";
   const rolActual = "Participante";
 
-  // --- Efectos y Carga de Datos ---
-
   useEffect(() => {
     const cargarDatos = async () => {
-      if (
-        !session.token ||
-        !usuarioLogueado ||
-        typeof usuarioLogueado.id === "undefined"
-      ) {
+      if (!session.token || !usuarioId) {
         toast.error("Debes iniciar sesión para poder pagar.");
         navigate("/login");
         return;
       }
 
       try {
-        const [dataSorteo, dataBoletos] = await Promise.all([
+        const [dataSorteo, dataBoletosApartados] = await Promise.all([
           getSorteoById(id),
-          getBoletosPorSorteo(id),
+          obtenerBoletosApartadosPorUsuario(id, session.token),
         ]);
 
-        if (Array.isArray(dataBoletos)) {
-          const idUsuarioActual = usuarioLogueado.id;
-          const misBoletosApartados = dataBoletos.filter(
-            (b) => b.estado === "APARTADO" && b.userId === idUsuarioActual
-          );
-          setSorteo(dataSorteo);
-          setBoletosApartados(misBoletosApartados);
-        } else {
-          setSorteo(dataSorteo);
-          setBoletosApartados([]);
-        }
+        setSorteo(dataSorteo);
+        setBoletosApartados(dataBoletosApartados);
       } catch (error) {
         toast.error("Error al cargar los datos del sorteo.");
         console.error("Detalle del error en cargarDatos:", error);
@@ -68,7 +55,7 @@ const PagarTransferenciaNumeros = () => {
     };
 
     cargarDatos();
-  }, [id, navigate, session.token, usuarioLogueado]);
+  }, [id, navigate, session.token, usuarioId]);
 
   const handleToggleSeleccion = (numeroBoleto) => {
     setBoletosSeleccionados((prev) =>
@@ -80,10 +67,19 @@ const PagarTransferenciaNumeros = () => {
 
   const handleToggleComprarTodos = (e) => {
     const checked = e.target.checked;
+
     setComprarTodos(checked);
-    setBoletosSeleccionados(
-      checked ? boletosApartados.map((b) => b.numeroBoleto) : []
-    );
+
+    if (checked) {
+      // Solo boletos que NO estén pendientes
+      const boletosHabilitados = boletosApartados
+        .filter((b) => b.payment?.estado !== "PENDIENTE")
+        .map((b) => b.numeroBoleto);
+
+      setBoletosSeleccionados(boletosHabilitados);
+    } else {
+      setBoletosSeleccionados([]);
+    }
   };
 
   const handleFileChange = (e) => {
@@ -92,9 +88,13 @@ const PagarTransferenciaNumeros = () => {
   };
 
   useEffect(() => {
+    const boletosHabilitados = boletosApartados.filter(
+      (b) => b.payment?.estado !== "PENDIENTE"
+    );
+
     setComprarTodos(
-      boletosApartados.length > 0 &&
-        boletosSeleccionados.length === boletosApartados.length
+      boletosHabilitados.length > 0 &&
+        boletosSeleccionados.length === boletosHabilitados.length
     );
   }, [boletosSeleccionados, boletosApartados]);
 
@@ -120,6 +120,60 @@ const PagarTransferenciaNumeros = () => {
         Cargando datos del pago...
       </div>
     );
+
+  const handleRegistrarComprobante = async () => {
+    const token = getToken();
+    if (!token) {
+      toast.error("Sesión no válida. Por favor inicia sesión nuevamente.");
+      return;
+    }
+
+    if (!imagenArchivo) {
+      toast.error(
+        "Por favor, selecciona una imagen para registrar el comprobante de pago."
+      );
+      return;
+    }
+
+    if (boletosSeleccionados.length === 0) {
+      toast.warning("Por favor selecciona los boletos que deseas pagar.");
+      return;
+    }
+
+    const montoTotal = totalCompra.total;
+
+    try {
+      const loadingToast = toast.loading("Procesando pago...");
+
+      const urlImagen = await uploadImageToCloudinary(imagenArchivo);
+
+      await registarTransBoletosApartados(
+        id,
+        boletosSeleccionados,
+        montoTotal,
+        urlImagen,
+        token
+      );
+
+      toast.update(loadingToast, {
+        render:
+          "Registro de comprobante exitoso! Tus comprbante procederan a ser verificado.",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+
+      setTimeout(() => {
+        navigate(`/sorteos/${id}`);
+      }, 2000);
+    } catch (error) {
+      toast.dismiss();
+      console.error("Error en registro de comprobante:", error);
+      toast.error(
+        error.message || "Hubo un error al procesar tu registro de comprobante."
+      );
+    }
+  };
 
   return (
     <div className="pagar-numeros-page">
@@ -148,7 +202,9 @@ const PagarTransferenciaNumeros = () => {
                 />
               </div>
               <div className="mb-3">
-                <label className="form-label fw-semibold">Imagen de comprobante de transferencia</label>
+                <label className="form-label fw-semibold">
+                  Imagen de comprobante de transferencia
+                </label>
                 <div
                   className="d-flex align-items-stretch"
                   style={{
@@ -206,21 +262,37 @@ const PagarTransferenciaNumeros = () => {
               <label className="form-label">
                 Seleccione los números a pagar
               </label>
+              <div className="leyenda mb-3">
+                <span className="pendiente">En revisión</span>
+                <span className="vendido">Seleccionado</span>
+              </div>
               <div className="boletos-a-pagar-grid mb-3">
                 {boletosApartados.length > 0 ? (
-                  boletosApartados.map((b) => (
-                    <div
-                      key={b.numeroBoleto}
-                      className={`boleto-item ${
-                        boletosSeleccionados.includes(b.numeroBoleto)
-                          ? "selected"
-                          : ""
-                      }`}
-                      onClick={() => handleToggleSeleccion(b.numeroBoleto)}
-                    >
-                      {b.numeroBoleto}
-                    </div>
-                  ))
+                  boletosApartados.map((b) => {
+                    const isPendiente = b.payment?.estado === "PENDIENTE";
+                    const isSelected = boletosSeleccionados.includes(
+                      b.numeroBoleto
+                    );
+
+                    return (
+                      <div
+                        key={b.numeroBoleto}
+                        className={`boleto-item 
+                          ${isSelected ? "selected" : ""}
+                          ${isPendiente ? "pendiente" : ""}
+                        `}
+                        onClick={() => {
+                          if (isPendiente) return; 
+                          handleToggleSeleccion(b.numeroBoleto);
+                        }}
+                        style={{
+                          cursor: isPendiente ? "not-allowed" : "pointer",
+                        }}
+                      >
+                        {b.numeroBoleto}
+                      </div>
+                    );
+                  })
                 ) : (
                   <p className="text-muted small">
                     No tienes boletos apartados para este sorteo.
@@ -274,6 +346,7 @@ const PagarTransferenciaNumeros = () => {
             </div>
             <div className="col-6 d-flex justify-content-center">
               <button
+                onClick={handleRegistrarComprobante}
                 className="btn btn-comprar"
                 disabled={boletosSeleccionados.length === 0}
               >

@@ -16,6 +16,7 @@ const PagarNumeros = () => {
 
     const session = getSession();
     const usuarioLogueado = session.user?.user || session.user;
+    const usuarioId = usuarioLogueado?.id;
 
     const [sorteo, setSorteo] = useState(null);
     const [boletosApartados, setBoletosApartados] = useState([]);
@@ -94,11 +95,7 @@ const PagarNumeros = () => {
 
     useEffect(() => {
         const cargarDatos = async () => {
-            if (
-                !session.token ||
-                !usuarioLogueado ||
-                typeof usuarioLogueado.id === "undefined"
-            ) {
+            if (!session.token || !usuarioId) { 
                 toast.error("Debes iniciar sesión para poder pagar.");
                 navigate("/login");
                 return;
@@ -111,9 +108,8 @@ const PagarNumeros = () => {
                 ]);
 
                 if (Array.isArray(dataBoletos)) {
-                    const idUsuarioActual = usuarioLogueado.id;
                     const misBoletosApartados = dataBoletos.filter(
-                        (b) => b.estado === "APARTADO" && b.userId === idUsuarioActual
+                        (b) => b.estado === "APARTADO" && b.userId === usuarioId 
                     );
                     setSorteo(dataSorteo);
                     setBoletosApartados(misBoletosApartados);
@@ -130,7 +126,7 @@ const PagarNumeros = () => {
         };
 
         cargarDatos();
-    }, [id, navigate, session.token, usuarioLogueado]);
+    }, [id, navigate, session.token, usuarioId]);
 
     const handleToggleSeleccion = (numeroBoleto) => {
         setBoletosSeleccionados((prev) =>

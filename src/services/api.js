@@ -1,5 +1,5 @@
 // src/api.js
-const API_URL = "https://apigatewaysorteos.onrender.com";
+const API_URL = "https://apigatewaysorteos.onrender.com"; // local: http://localhost:10000
 const RAFFLES_PATH = "api/raffles";
 const IMGBB_API_KEY = "b234eceb83416a07c80c0d0397f718ad"
 const CLOUDINARY_CLOUD_NAME = "dtejuoctt";
@@ -528,6 +528,66 @@ export const pagarBoletosApartados = async (raffleId, tickets, monto, claveRastr
 
   const data = await res.json();
   return data;
+};
+
+// lol
+export const registarTransBoletosApartados = async (raffleId, tickets, monto, voucher, token) => {
+  // El backend espera: tickets (array), voucher/urlImagen (string), monto (decimal)
+  const bodyData = {
+    tickets,
+    voucher,
+    monto
+  };
+
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/tickets/pay/${raffleId}/transaction`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(bodyData),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Error ${res.status}: No se pudo realizar el registro de transferencia.`);
+  }
+
+  const data = await res.json();
+  return data;
+};
+
+export const obtenerBoletosApartadosPorUsuario = async (raffleId, token) => {
+  console.log("Token recibido para perfil:", token);
+
+  try{
+    const res = await fetch(`${API_URL}/${RAFFLES_PATH}/tickets/aparted/${raffleId}/user`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      }
+    });
+  
+    console.log("Respuesta recibida (status):", res.status);
+
+    // Si la respuesta no fue exitosa
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Error del backend:", errorText);
+      throw new Error(`Error al obtener boletos apartados (${res.status})`);
+    }
+
+    const data = await res.json();
+    console.log("Perfil obtenido correctamente:", data);
+
+    return data; // { boleto, pago y estado }
+
+  } catch (err) {
+    console.error("Error en la función getUserProfile:", err);
+    throw err;
+  }
+
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -56,6 +56,7 @@
 .leyenda .mi_apartado::before {
   background-color: #f5d88e;
 }
+
 .leyenda .mi_comprado::before {
   background-color: #8ecaf5;
 }
@@ -123,6 +124,7 @@
   border-color: #e37b7b;
   cursor: not-allowed;
 }
+
 .boleto.apartado:hover {
   background-color: #e37b7b;
   border-color: #e37b7b;

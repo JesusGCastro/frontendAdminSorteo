@@ -73,6 +73,13 @@
   color: white;
 }
 
+.boleto-item.pendiente {
+  background-color: #f5d88e;
+  color: black;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
 .paginacion-boletos {
   display: flex;
   justify-content: flex-end;
