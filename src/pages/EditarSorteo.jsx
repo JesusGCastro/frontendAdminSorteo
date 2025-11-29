@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { getSession } from "../api";
 import { getSorteoDetailsById, actualizarSorteo, uploadImageToCloudinary } from "../services/api";
 import { toast } from 'react-toastify';
+import NavTabs from "../components/NavTabs";
 
 const EditarSorteo = () => {
     const navigate = useNavigate();
@@ -67,9 +68,10 @@ const EditarSorteo = () => {
                 };
 
                 setFormData(mapeado);
-
-                // **Backup REAL del estado inicial**
                 setBackup(mapeado);
+
+                //Guardar el nombre del sorteo en el localStorage
+                localStorage.setItem("nombreSorteo", data.raffle.nombre || "");
             } catch (error) {
                 console.error("Error al cargar sorteo:", error);
             }
@@ -119,7 +121,8 @@ const EditarSorteo = () => {
     };
 
     const handleVolver = () => {
-        navigate(-1); // Volver a la pagina anterior
+        //Lleva a home
+        navigate("/");
     };
 
     const handleValidacionBlur = (e) => {
@@ -282,7 +285,10 @@ const EditarSorteo = () => {
                     </p>
 
                     {/* Título */}
-                    <h4 className="fw-bold mb-4">Nombre del sorteo</h4>
+                    <h4 className="fw-bold mb-4">{formData.nombre}</h4>
+
+                    {/* Barra de navegación */}
+                    <NavTabs />
 
                     {/* Formulario */}
                     <div className="row g-4">

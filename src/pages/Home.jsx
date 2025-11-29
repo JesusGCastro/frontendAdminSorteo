@@ -51,7 +51,6 @@ const Home = () => {
       if (esParticipante) {
         if (estadoFiltro === "todos") data = await consultarSorteos();
         if (estadoFiltro === "participando") {
-          //TODO: NO muestra nada por que no esta conectado al backend
           data = null
           //data = await consultarSorteosDeParticipante(await getToken());
         }

@@ -1,0 +1,17 @@
+/* SorteoPagos.css */
+
+.tabla-container table.table tbody tr {
+    /* Opcional: Asegúrate de que las filas sean opacas por defecto */
+    background-color: transparent; 
+}
+
+/* Regla para el hover con !important */
+.tabla-container table.table tbody tr:hover {
+  background-color: #D3D3D3 !important; /* Gris claro, con !important */
+  cursor: pointer;
+}
+
+.tabla-container table.table tbody tr.fila-hover:hover {
+  background-color: #E0E0E0 !important;
+  cursor: pointer;
+}

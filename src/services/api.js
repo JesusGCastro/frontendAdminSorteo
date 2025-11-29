@@ -560,7 +560,7 @@ export const registarTransBoletosApartados = async (raffleId, tickets, monto, vo
 export const obtenerBoletosApartadosPorUsuario = async (raffleId, token) => {
   console.log("Token recibido para perfil:", token);
 
-  try{
+  try {
     const res = await fetch(`${API_URL}/${RAFFLES_PATH}/tickets/aparted/${raffleId}/user`, {
       method: "GET",
       headers: {
@@ -568,7 +568,7 @@ export const obtenerBoletosApartadosPorUsuario = async (raffleId, token) => {
         "Authorization": `Bearer ${token}`,
       }
     });
-  
+
     console.log("Respuesta recibida (status):", res.status);
 
     // Si la respuesta no fue exitosa
@@ -588,6 +588,112 @@ export const obtenerBoletosApartadosPorUsuario = async (raffleId, token) => {
     throw err;
   }
 
+};
+
+export const getDetallesPago = async (id) => {
+  // Simulación: datos según ID recibido
+  return {
+    id,
+    participante: "Antonio Lopez",
+    tipoPago: "TRANSFERENCIA",
+    estado: "PENDIENTE",
+    fechaRealizacion: "2025-11-29 12:00",
+    boletos: [12, 15, 34],
+    precioUnitario: 50,
+    importe: 150,
+    imagen: "https://picsum.photos/300"
+  };
+};
+
+
+// Metodo que simula obtener pagos de un sorteo en formato JSON
+export const getPagosSorteo = async () => {
+  return [
+    {
+      id: 1,
+      participante: "Ana López",
+      tipoPago: "Pago en línea",
+      estado: "Completado",
+      fechaRealizacion: "2025-01-12 18:00"
+    },
+    {
+      id: 2,
+      participante: "Carlos Ruiz",
+      tipoPago: "Transferencia",
+      estado: "Pendiente",
+      fechaRealizacion: "2025-01-10 19:00"
+    },
+    {
+      id: 3,
+      participante: "María Torres",
+      tipoPago: "Transferencia",
+      estado: "Cancelado",
+      fechaRealizacion: "2025-01-05 20:00"
+    },
+    {
+      id: 4,
+      participante: "Ana López",
+      tipoPago: "Pago en línea",
+      estado: "Completado",
+      fechaRealizacion: "2025-01-12 18:00"
+    },
+    {
+      id: 5,
+      participante: "Carlos Ruiz",
+      tipoPago: "Transferencia",
+      estado: "Pendiente",
+      fechaRealizacion: "2025-01-10 19:00"
+    },
+    {
+      id: 6,
+      participante: "María Torres",
+      tipoPago: "Transferencia",
+      estado: "Cancelado",
+      fechaRealizacion: "2025-01-05 20:00"
+    },
+    {
+      id: 7,
+      participante: "Ana López",
+      tipoPago: "Pago en línea",
+      estado: "Completado",
+      fechaRealizacion: "2025-01-12 18:00"
+    },
+    {
+      id: 8,
+      participante: "Carlos Ruiz",
+      tipoPago: "Transferencia",
+      estado: "Pendiente",
+      fechaRealizacion: "2025-01-10 19:00"
+    },
+    {
+      id: 9,
+      participante: "María Torres",
+      tipoPago: "Transferencia",
+      estado: "Cancelado",
+      fechaRealizacion: "2025-01-05 20:00"
+    },
+    {
+      id: 10,
+      participante: "Ana López",
+      tipoPago: "Pago en línea",
+      estado: "Completado",
+      fechaRealizacion: "2025-01-12 18:00"
+    },
+    {
+      id: 11,
+      participante: "Carlos Ruiz",
+      tipoPago: "Transferencia",
+      estado: "Pendiente",
+      fechaRealizacion: "2025-01-10 19:00"
+    },
+    {
+      id: 12,
+      participante: "María Torres",
+      tipoPago: "Transferencia",
+      estado: "Cancelado",
+      fechaRealizacion: "2025-01-05 20:00"
+    }
+  ];
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
