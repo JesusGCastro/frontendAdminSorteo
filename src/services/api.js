@@ -1,5 +1,6 @@
 // src/api.js
-const API_URL = "https://apigatewaysorteos.onrender.com"; // local: http://localhost:10000
+//const API_URL = "https://apigatewaysorteos.onrender.com";
+const API_URL = "http://localhost:10000";
 const RAFFLES_PATH = "api/raffles";
 const IMGBB_API_KEY = "b234eceb83416a07c80c0d0397f718ad"
 const CLOUDINARY_CLOUD_NAME = "dtejuoctt";

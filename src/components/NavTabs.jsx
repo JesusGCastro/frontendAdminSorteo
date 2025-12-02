@@ -8,7 +8,7 @@ const NavTabs = () => {
     const tabs = [
         { name: "Sorteo", path: `/edicionSorteos/${id}` },
         { name: "Pagos", path: `/edicionSorteos/${id}/pagos` },
-        { name: "Boletos", path: `/edicionSorteos/${id}/boletos` },
+        { name: "Boletos apartados", path: `/edicionSorteos/${id}/boletos` },
     ];
 
     return (
