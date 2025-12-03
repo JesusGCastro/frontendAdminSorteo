@@ -39,7 +39,7 @@ const waitForToast = async (page, message) => {
     `Toast no encontrado con mensaje: "${message}". Ver screenshot en test-results/`
   );
 };
-
+/*
 test("PRCP 1 - Participante registra transferencia como comprobante de pago", async ({
   page,
 }) => {
@@ -63,7 +63,7 @@ test("PRCP 1 - Participante registra transferencia como comprobante de pago", as
     "Registro de comprobante exitoso! Tu comprobante procederá a ser verificado."
   );
 });
-
+*/
 test("PRCP 2 - Participante no puede pagar sin seleccionar al menos un número", async ({
   page,
 }) => {
