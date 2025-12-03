@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 const PagoDetalles = () => {
     const navigate = useNavigate();
     const session = getSession();
-    const { id } = useParams();
+    const { id, pagoId } = useParams();
 
     const [sorteo, setSorteo] = useState(null);
     const [pago, setPago] = useState(null);
@@ -33,16 +33,44 @@ const PagoDetalles = () => {
     useEffect(() => {
         const cargar = async () => {
             try {
-                const data = await getDetallesPago(id);
-                setPago(data);
+                const data = await getDetallesPago(pagoId, session.token);
+
+                const adaptado = {
+                    participante: data.tickets?.[0]?.user?.nombre || "Desconocido",
+                    tipoPago: data.tipo,
+                    estado: data.estado,
+                    fechaRealizacion: data.createdAt,
+                    boletos: data.tickets.map(t => t.numeroBoleto),
+                    precioUnitario: data.raffle?.precioBoleto ?? "0",
+                    importe: data.monto,
+                    imagen: data.voucher,
+                    claveRastreo: data.claveRastreo || "N/A",
+                };
+                console.log("Detalles del pago adaptados:", adaptado);
+                setPago(adaptado);
             } catch {
                 toast.error("Error al cargar detalles del pago.");
             }
         };
         cargar();
-    }, [id]);
+    }, [pagoId, session.token]);
 
     if (!pago) return <div>Cargando datos...</div>;
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+
+        const d = new Date(dateString);
+
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+
+        const hours = String(d.getHours()).padStart(2, "0");
+        const minutes = String(d.getMinutes()).padStart(2, "0");
+
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+    };
 
     return (
         <div className="d-flex">
@@ -70,22 +98,27 @@ const PagoDetalles = () => {
 
                             <p>
                                 <strong>Fecha realización:</strong> &nbsp;
-                                {pago.fechaRealizacion}
+                                {formatDate(pago.fechaRealizacion)}
                             </p>
 
                             <p>
                                 <strong>Boletos:</strong> &nbsp;
-                                {pago.boletos.join(", ")}
+                                {`"${pago.boletos.join(", ")}"`}
                             </p>
 
                             <p><strong>Precio unitario:</strong> &nbsp;${pago.precioUnitario}</p>
 
                             <p><strong>Importe:</strong> &nbsp;${pago.importe}</p>
+
+                            {/* Solo mostrar si el tipo de pago es LINEA */}
+                            {pago.tipoPago.toLowerCase() === "linea" && (
+                                <p><strong>Clave de rastreo:</strong> &nbsp;{pago.claveRastreo}</p>
+                            )}
                         </div>
 
                         {/* Imagen SOLO si es transferencia */}
                         {pago.tipoPago.toLowerCase() === "transferencia" && (
-                            <div className="col-md-6 text-center">
+                            <div className="col-md-2 text-center">
                                 <img
                                     src={pago.imagen}
                                     alt="Comprobante"
@@ -102,7 +135,8 @@ const PagoDetalles = () => {
 
                     {/* BOTONES SOLO SI ES TRANSFERENCIA Y PENDIENTE */}
                     {(pago.tipoPago.toLowerCase() === "transferencia" && pago.estado.toLowerCase() === "pendiente") && (
-                        <div className="d-flex justify-content-end gap-4 mt-4">
+                        <div className="d-flex justify-content-center gap-4 mt-4"
+                            style={{ marginLeft: "250px" }}>
 
                             <button
                                 className="px-4 py-3"
@@ -158,4 +192,4 @@ const PagoDetalles = () => {
     );
 };
 
-    export default PagoDetalles;
+export default PagoDetalles;

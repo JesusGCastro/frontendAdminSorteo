@@ -70,18 +70,34 @@ const SorteoPagos = () => {
 
     useEffect(() => {
         cargarPagos();
-    }, []);
+    }, [id, session.token]);
 
-    // Cargar pagos
     const cargarPagos = async () => {
         try {
-            let data = await getPagosSorteo();
-            const pagosData = Array.isArray(data?.[0]) ? data[0] : data;
-            setPagos(Array.isArray(pagosData) ? pagosData : []);
+            const data = await getPagosSorteo(id, session.token);
+
+            if (!Array.isArray(data)) {
+                console.error("Respuesta inesperada:", data);
+                setPagos([]);
+                return;
+            }
+
+            const pagosTransformados = data.map((p) => ({
+                id: p.id,
+                participante: p.tickets?.[0]?.user?.nombre || "Desconocido",
+                tipoPago: p.tipo || "",
+                estado: p.estado || "",
+                fechaRealizacion: p.createdAt || "",
+            }));
+
+            setPagos(pagosTransformados);
+
         } catch (err) {
             console.error("Error al cargar pagos:", err);
+            setPagos([]);
         }
     };
+
 
     const renderEstado = (estado) => {
         const estadoUpper = estado.toUpperCase();
@@ -201,7 +217,7 @@ const SorteoPagos = () => {
                                 ) : (
                                     <tr>
                                         <td colSpan="4" className="text-center py-4">
-                                            No hay operaciones que coincidan con el filtro.
+                                            No hay operaciones que coincidan.
                                         </td>
                                     </tr>
                                 )}

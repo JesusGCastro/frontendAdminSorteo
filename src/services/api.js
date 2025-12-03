@@ -591,110 +591,50 @@ export const obtenerBoletosApartadosPorUsuario = async (raffleId, token) => {
 
 };
 
-export const getDetallesPago = async (id) => {
-  // Simulación: datos según ID recibido
-  return {
-    id,
-    participante: "Antonio Lopez",
-    tipoPago: "TRANSFERENCIA",
-    estado: "PENDIENTE",
-    fechaRealizacion: "2025-11-29 12:00",
-    boletos: [12, 15, 34],
-    precioUnitario: 50,
-    importe: 150,
-    imagen: "https://picsum.photos/300"
-  };
-};
+export const getDetallesPago = async (paymentId, token) => {
+    try {
+        const response = await fetch(`${API_URL}/${RAFFLES_PATH}/payments/details/${paymentId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
 
+        if (!response.ok) {
+            throw new Error("Error al obtener detalles del pago");
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error en getDetallesPago:", error);
+        return null;
+    }
+};
 
 // Metodo que simula obtener pagos de un sorteo en formato JSON
-export const getPagosSorteo = async () => {
-  return [
-    {
-      id: 1,
-      participante: "Ana López",
-      tipoPago: "Pago en línea",
-      estado: "Completado",
-      fechaRealizacion: "2025-01-12 18:00"
-    },
-    {
-      id: 2,
-      participante: "Carlos Ruiz",
-      tipoPago: "Transferencia",
-      estado: "Pendiente",
-      fechaRealizacion: "2025-01-10 19:00"
-    },
-    {
-      id: 3,
-      participante: "María Torres",
-      tipoPago: "Transferencia",
-      estado: "Cancelado",
-      fechaRealizacion: "2025-01-05 20:00"
-    },
-    {
-      id: 4,
-      participante: "Ana López",
-      tipoPago: "Pago en línea",
-      estado: "Completado",
-      fechaRealizacion: "2025-01-12 18:00"
-    },
-    {
-      id: 5,
-      participante: "Carlos Ruiz",
-      tipoPago: "Transferencia",
-      estado: "Pendiente",
-      fechaRealizacion: "2025-01-10 19:00"
-    },
-    {
-      id: 6,
-      participante: "María Torres",
-      tipoPago: "Transferencia",
-      estado: "Cancelado",
-      fechaRealizacion: "2025-01-05 20:00"
-    },
-    {
-      id: 7,
-      participante: "Ana López",
-      tipoPago: "Pago en línea",
-      estado: "Completado",
-      fechaRealizacion: "2025-01-12 18:00"
-    },
-    {
-      id: 8,
-      participante: "Carlos Ruiz",
-      tipoPago: "Transferencia",
-      estado: "Pendiente",
-      fechaRealizacion: "2025-01-10 19:00"
-    },
-    {
-      id: 9,
-      participante: "María Torres",
-      tipoPago: "Transferencia",
-      estado: "Cancelado",
-      fechaRealizacion: "2025-01-05 20:00"
-    },
-    {
-      id: 10,
-      participante: "Ana López",
-      tipoPago: "Pago en línea",
-      estado: "Completado",
-      fechaRealizacion: "2025-01-12 18:00"
-    },
-    {
-      id: 11,
-      participante: "Carlos Ruiz",
-      tipoPago: "Transferencia",
-      estado: "Pendiente",
-      fechaRealizacion: "2025-01-10 19:00"
-    },
-    {
-      id: 12,
-      participante: "María Torres",
-      tipoPago: "Transferencia",
-      estado: "Cancelado",
-      fechaRealizacion: "2025-01-05 20:00"
+export const getPagosSorteo = async (raffleId, token) => {
+    try {
+        const response = await fetch(`${API_URL}/${RAFFLES_PATH}/payments/${raffleId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error("Error al obtener los pagos del sorteo");
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("getPagosSorteo ERROR:", error);
+        return [];
     }
-  ];
 };
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
