@@ -636,5 +636,68 @@ export const getPagosSorteo = async (raffleId, token) => {
     }
 };
 
+// Obtener boletos apartados de un sorteo (Vista Sorteador)
+export const getBoletosApartadosSorteo = async (raffleId, token) => {
+  try {
+    const res = await fetch(`${API_URL}/${RAFFLES_PATH}/admin/tickets/reserved/${raffleId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    console.log("Respuesta getBoletosApartadosSorteo (status):", res.status);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Error del backend:", errorText);
+      throw new Error(`Error al obtener boletos apartados del sorteo (${res.status})`);
+    }
+
+    const data = await res.json();
+    console.log("Boletos apartados obtenidos correctamente:", data);
+    return data;
+
+  } catch (err) {
+    console.error("Error en getBoletosApartadosSorteo:", err);
+    throw err;
+  }
+};
+
+// Liberar boletos apartados (Solo Sorteador)
+export const liberarBoletosApartados = async (raffleId, numerosBoletos, token) => {
+  if (!numerosBoletos || !Array.isArray(numerosBoletos) || numerosBoletos.length === 0) {
+    throw new Error("Debes proporcionar al menos un número de boleto para liberar");
+  }
+
+  const bodyData = { numerosBoletos };
+
+  try {
+    const res = await fetch(`${API_URL}/${RAFFLES_PATH}/admin/tickets/release/${raffleId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(bodyData),
+    });
+
+    console.log("Respuesta liberarBoletosApartados (status):", res.status);
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Error ${res.status}: No se pudieron liberar los boletos.`);
+    }
+
+    const data = await res.json();
+    console.log("Boletos liberados exitosamente:", data);
+    return data;
+
+  } catch (err) {
+    console.error("Error en liberarBoletosApartados:", err);
+    throw err;
+  }
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////

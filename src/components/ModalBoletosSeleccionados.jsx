@@ -1,8 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { toast } from 'react-toastify';
+import { liberarBoletosApartados } from '../services/api';
 import './ModalBoletosSeleccionados.css';
 
-const ModalBoletosSeleccionados = ({ isOpen, onClose, boletos }) => {
+const ModalBoletosSeleccionados = ({ isOpen, onClose, boletos, raffleId, token, onSuccess }) => {
+  const [loading, setLoading] = useState(false);
+
   if (!isOpen) return null;
+
+  const handleLiberar = async () => {
+    if (boletos.length === 0) {
+      toast.warning("No hay boletos seleccionados");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Llamar al backend para liberar
+      const response = await liberarBoletosApartados(raffleId, boletos, token);
+
+      console.log("Respuesta del servidor:", response);
+
+      // Cerrar modal y notificar éxito
+      onSuccess(boletos);
+
+    } catch (error) {
+      console.error("Error al liberar boletos:", error);
+      toast.error(error.message || "Error al liberar los boletos");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -14,6 +43,7 @@ const ModalBoletosSeleccionados = ({ isOpen, onClose, boletos }) => {
             <button 
               className="btn-close position-absolute" 
               onClick={onClose}
+              disabled={loading}
               style={{ right: '20px', top: '20px' }}
             ></button>
           </div>
@@ -37,7 +67,7 @@ const ModalBoletosSeleccionados = ({ isOpen, onClose, boletos }) => {
             </div>
 
             <p className="text-center mb-3" style={{ color: '#666', fontSize: '0.95rem' }}>
-              Estos números se quitarán del apartado actual del participante y volverán a estar disponibles para todos.
+              Estos números se eliminarán de la base de datos y volverán a estar disponibles para todos.
             </p>
           </div>
 
@@ -45,6 +75,7 @@ const ModalBoletosSeleccionados = ({ isOpen, onClose, boletos }) => {
             <button 
               className="btn btn-cancelar px-4 py-2" 
               onClick={onClose}
+              disabled={loading}
               style={{
                 background: 'transparent',
                 color: 'black',
@@ -58,17 +89,27 @@ const ModalBoletosSeleccionados = ({ isOpen, onClose, boletos }) => {
 
             <button 
               className="btn btn-liberar px-4 py-2" 
-              onClick={() => console.log("Liberar boletos")}
+              onClick={handleLiberar}
+              disabled={loading}
               style={{
                 backgroundColor: '#DAA1ED',
                 color: 'white',
                 borderRadius: '8px',
                 fontWeight: '500',
                 border: 'none',
-                minWidth: '140px'
+                minWidth: '140px',
+                opacity: loading ? 0.6 : 1,
+                cursor: loading ? 'not-allowed' : 'pointer'
               }}
             >
-              Liberar números
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Liberando...
+                </>
+              ) : (
+                'Liberar números'
+              )}
             </button>
           </div>
 

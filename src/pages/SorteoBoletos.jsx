@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import Sidebar from "../components/Sidebar";
 import NavTabs from "../components/NavTabs";
 import ModalBoletosSeleccionados from "../components/ModalBoletosSeleccionados";
-import { getSession, getNombreSorteo } from "../api";
+import { getSession, getSorteoById, getBoletosApartadosSorteo } from "../services/api";
 
 const SorteoBoletos = () => {
   const navigate = useNavigate();
@@ -13,26 +13,54 @@ const SorteoBoletos = () => {
 
   // Estados
   const [sorteo, setSorteo] = useState(null);
-  const [boletos] = useState([2, 22, 6, 10, 12, 29, 13, 17]); // mock
+  const [boletosApartados, setBoletosApartados] = useState([]);
+  const [numerosApartados, setNumerosApartados] = useState([]);
   const [seleccionados, setSeleccionados] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Datos del usuario
   const nombreUsuario = session?.user?.nombre || "Sorteador Anonimo";
+  const token = session?.token;
   const rolActual = "sorteador";
   const rolFormateado =
     rolActual.charAt(0).toUpperCase() + rolActual.slice(1).toLowerCase();
 
-  // Cargar nombre del sorteo
+  // Cargar sorteo y boletos apartados
   useEffect(() => {
-    const nombreSorteo = getNombreSorteo();
-    if (nombreSorteo) {
-      setSorteo({ nombre: nombreSorteo });
-    } else {
-      toast.error("No se pudo obtener el nombre del sorteo.");
-    }
-  }, [id]);
+    const cargarDatos = async () => {
+      if (!token) {
+        toast.error("No hay sesión activa");
+        navigate("/login");
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        // Cargar información del sorteo
+        const datosSorteo = await getSorteoById(id);
+        setSorteo(datosSorteo);
+
+        // Cargar boletos apartados
+        const boletosData = await getBoletosApartadosSorteo(id, token);
+        setBoletosApartados(boletosData);
+
+        // Extraer solo los números para el grid
+        const numeros = boletosData.map((boleto) => boleto.numeroBoleto);
+        setNumerosApartados(numeros);
+
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+        toast.error("Error al cargar los boletos apartados");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
+  }, [id, token, navigate]);
 
   // Toggle de boleto individual
   const toggleBoleto = (num) => {
@@ -42,7 +70,7 @@ const SorteoBoletos = () => {
       : [...seleccionados, num];
 
     setSeleccionados(actualizados);
-    setSelectAll(actualizados.length === boletos.length);
+    setSelectAll(actualizados.length === numerosApartados.length);
   };
 
   // Toggle seleccionar todos
@@ -51,7 +79,7 @@ const SorteoBoletos = () => {
       setSeleccionados([]);
       setSelectAll(false);
     } else {
-      setSeleccionados([...boletos]);
+      setSeleccionados([...numerosApartados]);
       setSelectAll(true);
     }
   };
@@ -68,6 +96,36 @@ const SorteoBoletos = () => {
     }
     setModalOpen(true);
   };
+
+  // Callback para actualizar lista después de liberar
+  const handleBoletosLiberados = (numerosLiberados) => {
+    // Filtrar los boletos que NO fueron liberados
+    const boletosRestantes = boletosApartados.filter(
+      (boleto) => !numerosLiberados.includes(boleto.numeroBoleto)
+    );
+    
+    setBoletosApartados(boletosRestantes);
+    setNumerosApartados(boletosRestantes.map(b => b.numeroBoleto));
+    setSeleccionados([]);
+    setSelectAll(false);
+    setModalOpen(false);
+
+    toast.success(`${numerosLiberados.length} boleto(s) liberado(s) exitosamente`);
+  };
+
+  // Pantalla de carga
+  if (loading) {
+    return (
+      <div className="d-flex">
+        <Sidebar />
+        <div className="flex-grow-1 d-flex justify-content-center align-items-center" style={{ marginLeft: "80px", minHeight: "100vh" }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="d-flex">
@@ -109,33 +167,35 @@ const SorteoBoletos = () => {
             {/* Header con checkbox seleccionar todos */}
             <div className="d-flex justify-content-between align-items-center mb-3">
               <span style={{ fontSize: "1.1rem", color: "#000" }}>
-                Seleccione un boleto para liberar
+                Seleccione un boleto para liberar ({numerosApartados.length} apartados)
               </span>
 
-              <div className="d-flex align-items-center">
-                <input
-                  type="checkbox"
-                  id="selectAll"
-                  checked={selectAll}
-                  onChange={toggleSelectAll}
-                  style={{ cursor: "pointer" }}
-                />
-                <label
-                  htmlFor="selectAll"
-                  className="ms-2"
-                  style={{ color: "#000", cursor: "pointer" }}
-                >
-                  Seleccionar todos
-                </label>
-              </div>
+              {numerosApartados.length > 0 && (
+                <div className="d-flex align-items-center">
+                  <input
+                    type="checkbox"
+                    id="selectAll"
+                    checked={selectAll}
+                    onChange={toggleSelectAll}
+                    style={{ cursor: "pointer" }}
+                  />
+                  <label
+                    htmlFor="selectAll"
+                    className="ms-2"
+                    style={{ color: "#000", cursor: "pointer" }}
+                  >
+                    Seleccionar todos
+                  </label>
+                </div>
+              )}
             </div>
 
             {/* Grid de boletos */}
             <div className="d-flex flex-wrap gap-3">
-              {boletos.length === 0 ? (
-                <p className="text-muted">No hay boletos disponibles</p>
+              {numerosApartados.length === 0 ? (
+                <p className="text-muted">No hay boletos apartados en este sorteo</p>
               ) : (
-                boletos.map((num) => {
+                numerosApartados.map((num) => {
                   const isSelected = seleccionados.includes(num);
 
                   return (
@@ -212,6 +272,7 @@ const SorteoBoletos = () => {
                 transition: "all 0.2s ease",
               }}
               onClick={handleContinuar}
+              disabled={seleccionados.length === 0}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#C891DD";
               }}
@@ -231,6 +292,9 @@ const SorteoBoletos = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         boletos={seleccionados}
+        raffleId={id}
+        token={token}
+        onSuccess={handleBoletosLiberados}
       />
     </div>
   );
