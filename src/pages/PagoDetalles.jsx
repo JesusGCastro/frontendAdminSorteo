@@ -4,7 +4,11 @@ import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { getSession } from "../api";
 import { getNombreSorteo } from "../api";
-import { getDetallesPago } from "../services/api";
+import { 
+    getDetallesPago,
+    confirmarPagoAdmin,       
+    liberarBoletosApartados  
+} from "../services/api";
 import { toast } from "react-toastify";
 
 const PagoDetalles = () => {
@@ -12,8 +16,10 @@ const PagoDetalles = () => {
     const session = getSession();
     const { id, pagoId } = useParams();
 
+    // 1. Declaración de TODOS los estados al principio
     const [sorteo, setSorteo] = useState(null);
     const [pago, setPago] = useState(null);
+    const [procesando, setProcesando] = useState(false); // <--- MOVIDO AQUÍ (CORRECTO)
 
     const nombreUsuario = session?.user?.nombre || "Sorteador Anonimo";
     const rolActual = "sorteador";
@@ -55,6 +61,7 @@ const PagoDetalles = () => {
         cargar();
     }, [pagoId, session.token]);
 
+    // 2. Return condicional (Después de declarar todos los hooks)
     if (!pago) return <div>Cargando datos...</div>;
 
     const formatDate = (dateString) => {
@@ -70,6 +77,46 @@ const PagoDetalles = () => {
         const minutes = String(d.getMinutes()).padStart(2, "0");
 
         return `${year}-${month}-${day} ${hours}:${minutes}`;
+    };
+
+    const handleConfirmarPago = async () => {
+        if (!window.confirm("¿Estás seguro de confirmar este pago? Los boletos se marcarán como pagados.")) return;
+
+        setProcesando(true);
+        try {
+            // Llamamos al nuevo endpoint de confirmar
+            await confirmarPagoAdmin(id, pagoId, pago.boletos, session.token);
+            toast.success("Pago confirmado exitosamente.");
+            
+            // Recargamos o volvemos atrás tras un breve delay
+            setTimeout(() => {
+                navigate(-1); // Volver a la lista de pagos
+            }, 1500);
+
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Error al confirmar el pago.");
+            setProcesando(false);
+        }
+    };
+
+    const handleRechazarPago = async () => {
+        if (!window.confirm("¿Estás seguro de rechazar este pago? Los boletos serán liberados.")) return;
+
+        setProcesando(true);
+        try {
+            await liberarBoletosApartados(id, pago.boletos, session.token);
+            toast.success("Pago rechazado y boletos liberados.");
+
+            setTimeout(() => {
+                navigate(-1);
+            }, 1500);
+
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Error al rechazar el pago.");
+            setProcesando(false);
+        }
     };
 
     return (
@@ -139,6 +186,8 @@ const PagoDetalles = () => {
                             style={{ marginLeft: "250px" }}>
 
                             <button
+                                onClick={handleRechazarPago}   // <-- CONECTADO
+                                disabled={procesando}          // <-- BLOQUEO
                                 className="px-4 py-3"
                                 style={{
                                     backgroundColor: "#E45A5A",
@@ -147,13 +196,17 @@ const PagoDetalles = () => {
                                     color: "white",
                                     border: "none",
                                     minWidth: "200px",
+                                    opacity: procesando ? 0.7 : 1, // Feedback visual
+                                    cursor: procesando ? 'not-allowed' : 'pointer'
                                 }}
                             >
                                 <i className="bi bi-x-circle me-2"></i>
-                                RECHAZAR PAGO
+                                {procesando ? "Procesando..." : "RECHAZAR PAGO"} 
                             </button>
 
                             <button
+                                onClick={handleConfirmarPago}  // <-- CONECTADO
+                                disabled={procesando}          // <-- BLOQUEO
                                 className="px-4 py-3"
                                 style={{
                                     backgroundColor: "#C7A0F7",
@@ -162,15 +215,17 @@ const PagoDetalles = () => {
                                     color: "black",
                                     border: "none",
                                     minWidth: "200px",
+                                    opacity: procesando ? 0.7 : 1, // Feedback visual
+                                    cursor: procesando ? 'not-allowed' : 'pointer'
                                 }}
                             >
                                 <i className="bi bi-check-circle me-2"></i>
-                                CONFIRMAR PAGO
+                                {procesando ? "Procesando..." : "CONFIRMAR PAGO"}
                             </button>
                         </div>
                     )}
-
-                    {/* BOTÓN VOLVER */}
+                    
+                    {/* BOTÓN VOLVER (Fuera del condicional para que siempre se vea) */}
                     <button
                         type="button"
                         className="d-flex align-items-center px-4 py-2 mb-4 mt-4"
@@ -186,6 +241,7 @@ const PagoDetalles = () => {
                         <i className="bi bi-arrow-left me-2"></i>
                         Volver
                     </button>
+
                 </div>
             </div>
         </div>
