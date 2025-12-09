@@ -700,4 +700,40 @@ export const liberarBoletosApartados = async (raffleId, numerosBoletos, token) =
   }
 };
 
+// Marcar boletos como pagados y pago como completado (Solo Sorteador)
+export const confirmarPagoAdmin = async (raffleId, paymentId, numerosBoletos, token) => {
+  if (!numerosBoletos || !Array.isArray(numerosBoletos) || numerosBoletos.length === 0) {
+    throw new Error("Debes proporcionar los números de boletos a confirmar.");
+  }
+
+  const bodyData = { numerosBoletos };
+
+  try {
+    const res = await fetch(`${API_URL}/${RAFFLES_PATH}/admin/tickets/mark-paid/${raffleId}/payment/${paymentId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(bodyData),
+    });
+
+    console.log("Respuesta confirmarPagoAdmin (status):", res.status);
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Error ${res.status}: No se pudo confirmar el pago.`);
+    }
+
+    const data = await res.json();
+    return data;
+
+  } catch (err) {
+    console.error("Error en confirmarPagoAdmin:", err);
+    throw err;
+  }
+};
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////
