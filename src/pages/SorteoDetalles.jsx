@@ -6,6 +6,7 @@ import {
   getBoletosPorSorteo,
   getToken,
   getSession,
+  liberarNumeros,
 } from "../services/api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
@@ -191,11 +192,6 @@ const SorteoDetalles = () => {
       return;
     }
 
-    if (boletosSeleccionados.length === 0) {
-      toast.error("Por favor, selecciona al menos un boleto para apartar.");
-      return;
-    }
-
     const token = getToken();
 
     if (!token) {
@@ -232,6 +228,68 @@ const SorteoDetalles = () => {
       })
       .catch((error) => {
         console.error("Error al apartar boletos:", error);
+        toast.error(`Error: ${error.message}`);
+      });
+  };
+
+  const liberarBoletos = () => {
+    if (sorteoNoIniciado) {
+      toast.error(
+        `Este sorteo aún no inicia.\nNo puedes apartar boletos hasta el ${formatDate(
+          sorteo.fechaInicialVentaBoletos
+        )}.`
+      );
+      return;
+    }
+
+    if (boletosSeleccionados.length === 0) {
+      toast.error("Por favor, selecciona al menos un boleto para apartar.");
+      return;
+    }
+
+    const token = getToken();
+
+    if (!token) {
+      if (
+        window.confirm(
+          "Para apartar boletos, necesitas iniciar sesión. ¿Deseas ir a la página de inicio de sesión ahora?"
+        )
+      ) {
+        navigate("/login");
+      }
+      return;
+    }
+
+    const numerosAStrings = boletosSeleccionados.map(String);
+
+    //Mantener solo los boletos con estado APARTADO y que pertenezcan al usuario logueado
+    const boletosApartadosDelUsuario = boletosOcupados.filter((boleto) =>
+      numerosAStrings.includes(String(boleto.numeroBoleto)) &&
+      boleto.estado === "APARTADO" &&
+      boleto.userId === idUsuarioLogueado
+    );
+
+    liberarNumeros(sorteo.id, boletosApartadosDelUsuario.map(b => String(b.numeroBoleto)), token)
+      .then((response) => {
+        const numerosLiberados = response.freeTickets.map(
+          (ticket) => ticket.numeroBoleto
+        );
+        toast.success(`Boletos liberados exitosamente: ${numerosLiberados.join(", ")}`);
+
+        setBoletosOcupados((prev) => [...prev.filter(b => !numerosLiberados.includes(b.numeroBoleto)), ...response.freeTickets]);
+        setBoletosSeleccionados([]);
+        setUsuarioTieneBoletosApartados(true); // Actualizamos el estado para mostrar el botón de pagar
+
+        if (response.failedToReserve && response.failedToReserve.length > 0) {
+          toast.warning(
+            `Los siguientes boletos no se pudieron liberar: ${response.failedToReserve.join(
+              ", "
+            )}`
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error al liberar boletos:", error);
         toast.error(`Error: ${error.message}`);
       });
   };
@@ -284,16 +342,16 @@ const SorteoDetalles = () => {
   );
 
   const handleSeleccionMetodoPago = (metodo) => {
-  setMostrarModalPago(false);
-  
-  if (metodo === 'online') {
-    // Redirige a pago en línea (actual)
-    navigate(`/pagar/${sorteo.id}`);
-  } else if (metodo === 'transferencia') {
-    // Redirige a pago por transferencia (nueva página)
-    navigate(`/pagar-transferencia/${sorteo.id}`);
-  }
-};
+    setMostrarModalPago(false);
+
+    if (metodo === 'online') {
+      // Redirige a pago en línea (actual)
+      navigate(`/pagar/${sorteo.id}`);
+    } else if (metodo === 'transferencia') {
+      // Redirige a pago por transferencia (nueva página)
+      navigate(`/pagar-transferencia/${sorteo.id}`);
+    }
+  };
 
   return (
     <div className="d-flex">
@@ -500,6 +558,19 @@ const SorteoDetalles = () => {
                 }}
               >
                 Apartar números
+              </button>
+
+              <button
+                className="btn btn-primary rounded-pill ms-3"
+                onClick={liberarBoletos}
+                style={{
+                  backgroundColor: "#C087E8",
+                  color: "black",
+                  border: "none",
+                  fontWeight: "bold",
+                }}
+              >
+                Liberar números
               </button>
 
               {usuarioTieneBoletosApartados && (
