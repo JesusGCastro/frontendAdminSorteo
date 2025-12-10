@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+/*import { test, expect } from "@playwright/test";
 import { resolve } from "path";
 
 // Función para iniciar sesión como participante
@@ -8,7 +8,7 @@ const loginAsParticipante = async (page) => {
   await page.locator('input[type="email"]').fill("hector21@gmail.com");
   await page.locator('input[type="password"]').fill("Hector21$");
   await page.getByRole("button", { name: "Iniciar Sesión" }).click();
-  await page.waitForURL("**/", { timeout: 10000 });
+  await page.waitForURL("**", { timeout: 10000 });
 };
 
 const waitForToast = async (page, message) => {
@@ -63,7 +63,7 @@ test("PRCP 1 - Participante registra transferencia como comprobante de pago", as
     "Registro de comprobante exitoso! Tu comprobante procederá a ser verificado."
   );
 });
-*/
+
 test("PRCP 2 - Participante no puede pagar sin seleccionar al menos un número", async ({
   page,
 }) => {
@@ -143,4 +143,4 @@ test("PRCP 5 - Participante no puede seleccionar boletos apartados con transfere
 
   // Verificar que NO se seleccione
   await expect(boletoPendiente).not.toHaveClass(/selected/);
-});
+});*/

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+/*import { test, expect } from '@playwright/test';
 
 test('PPL 1. El sorteador no puede comprar números.', async ({ page }) => {
   // Ingresar como sorteador

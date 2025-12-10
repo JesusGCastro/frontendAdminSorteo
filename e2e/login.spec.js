@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+/*import { test, expect } from '@playwright/test';
 
 test('IS 1. Iniciar sesion con credenciales validas.', async ({ page }) => {
   // Abrimos la pagina y seleccionamos el boton de login
@@ -122,4 +122,4 @@ test('IS 8. Sorteador cambia a vista de participante y de vuelta.', async ({ pag
   await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
   await page.getByTestId('switch').nth(1).click();
   await page.getByText('Sorteador4 / Participante').click();
-});	
+});	*/

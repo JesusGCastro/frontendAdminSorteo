@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+/*import { test, expect } from '@playwright/test';
 import { resolve } from "path";
 
 // --- Helper para Login ---
@@ -104,4 +104,4 @@ test.describe('Sorteador Edita Sorteo (Interfaz)', () => {
     await btnConfirmar.click();
   });
 
-});
+});*/

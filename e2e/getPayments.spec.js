@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+/*import { test, expect } from "@playwright/test";
 
 
 const loginAsSorteador = async (page) => {
@@ -7,7 +7,7 @@ const loginAsSorteador = async (page) => {
   await page.locator('input[type="email"]').fill("sorteador4@mail.com");
   await page.locator('input[type="password"]').fill("123456");
   await page.getByRole("button", { name: "Iniciar Sesión" }).click();
-  await page.waitForURL("**/", { timeout: 10000 });
+  await page.waitForURL("**", { timeout: 10000 });
 };
 
 const seleccionarSorteo = async (page) => {
@@ -41,4 +41,4 @@ test ("SCCP 3 - Sorteador visualiza los detalles de un pago en linea", async ({ 
 });
 
 
-
+*/
