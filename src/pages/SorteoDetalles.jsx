@@ -6,7 +6,7 @@ import {
   getBoletosPorSorteo,
   getToken,
   getSession,
-  liberarNumeros,
+  //liberarNumeros,
 } from "../services/api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
@@ -268,7 +268,7 @@ const SorteoDetalles = () => {
       boleto.estado === "APARTADO" &&
       boleto.userId === idUsuarioLogueado
     );
-
+    /*
     liberarNumeros(sorteo.id, boletosApartadosDelUsuario.map(b => String(b.numeroBoleto)), token)
       .then((response) => {
         const numerosLiberados = response.freeTickets.map(
@@ -305,7 +305,7 @@ const SorteoDetalles = () => {
           <p>Cargando sorteo...</p>
         </div>
       </div>
-    );
+    );*/
   }
 
   // // Lógica de paginación segura (evita error si 'sorteo.cantidadMaximaBoletos' no existe)
