@@ -94,10 +94,10 @@ const SorteoPagos = () => {
 
         } catch (err) {
             console.error("Error al cargar pagos:", err);
+            toast.error(err.message || "Error al cargar los pagos.");
             setPagos([]);
         }
     };
-
 
     const renderEstado = (estado) => {
         const estadoUpper = estado.toUpperCase();

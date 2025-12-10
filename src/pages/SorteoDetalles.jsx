@@ -7,6 +7,7 @@ import {
   getToken,
   getSession,
   liberarNumeros,
+  getRolActual,
 } from "../services/api";
 import Sidebar from "../components/Sidebar";
 import "../styles/SorteoDetalles.css";
@@ -39,6 +40,12 @@ const SorteoDetalles = () => {
     useState(false);
   const boletosPorPagina = 52;
   const [mostrarModalPago, setMostrarModalPago] = useState(false)
+  const session = getSession();
+
+  const nombreUsuario = session?.user?.nombre || "Sorteador Anonimo";
+  const rolActual = getRolActual();
+  const rolFormateado =
+    rolActual.charAt(0).toUpperCase() + rolActual.slice(1).toLowerCase();
 
   useEffect(() => {
     const obtenerDatosCompletos = async () => {
@@ -170,11 +177,34 @@ const SorteoDetalles = () => {
       return;
     }
 
-    if (boletosEstadoMap[num]) return;
+    // Obtener info completa del boleto
+    const b = boletosOcupados.find(x => x.numeroBoleto === num);
 
+    // Si está libre → permitir
+    if (!b) {
+      setBoletosSeleccionados(prev =>
+        prev.includes(num) ? prev.filter(n => n !== num) : [...prev, num]
+      );
+      return;
+    }
+
+    // Si está comprado → nunca permitir
+    if (b.estado === "COMPRADO") return;
+
+    // Si está apartado por otro usuario → no permitir
+    if (b.estado === "APARTADO" && b.userId !== idUsuarioLogueado) return;
+
+    // Si está apartado por mí → permitir selección
+    if (b.estado === "APARTADO" && b.userId === idUsuarioLogueado) {
+      setBoletosSeleccionados(prev =>
+        prev.includes(num) ? prev.filter(n => n !== num) : [...prev, num]
+      );
+      return;
+    }
+    /*
     setBoletosSeleccionados((prev) =>
       prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num]
-    );
+    );*/
   };
 
   const apartarBoletos = () => {
@@ -269,7 +299,10 @@ const SorteoDetalles = () => {
       boleto.userId === idUsuarioLogueado
     );
 
-    liberarNumeros(sorteo.id, boletosApartadosDelUsuario.map(b => String(b.numeroBoleto)), token)
+    //Solo imprimir mensaje en consolo de los boletos que se intentarán liberar
+    console.log("Boletos a liberar:", boletosApartadosDelUsuario);
+
+    /*liberarNumeros(sorteo.id, boletosApartadosDelUsuario.map(b => String(b.numeroBoleto)), token)
       .then((response) => {
         const numerosLiberados = response.freeTickets.map(
           (ticket) => ticket.numeroBoleto
@@ -278,7 +311,6 @@ const SorteoDetalles = () => {
 
         setBoletosOcupados((prev) => [...prev.filter(b => !numerosLiberados.includes(b.numeroBoleto)), ...response.freeTickets]);
         setBoletosSeleccionados([]);
-        setUsuarioTieneBoletosApartados(true); // Actualizamos el estado para mostrar el botón de pagar
 
         if (response.failedToReserve && response.failedToReserve.length > 0) {
           toast.warning(
@@ -291,7 +323,7 @@ const SorteoDetalles = () => {
       .catch((error) => {
         console.error("Error al liberar boletos:", error);
         toast.error(`Error: ${error.message}`);
-      });
+      });*/
   };
 
   if (!sorteo) {
@@ -331,8 +363,13 @@ const SorteoDetalles = () => {
   //   : boletosPagina;
 
 
-  // Lógica de paginación segura (evita error si 'sorteo.cantidadMaximaBoletos' no existe)
-  const cantidadBoletos = sorteo.cantidadMaximaBoletos || 0;
+  // Si sorteo es null, evita romper todo
+  if (!sorteo) {
+    return <div>Cargando...</div>; // o lo que quieras mostrar
+  }
+
+  // Lógica segura
+  const cantidadBoletos = sorteo.cantidadMaximaBoletos ?? 0;
   const boletos = Array.from({ length: cantidadBoletos }, (_, i) => i + 1);
   const totalPaginas = Math.ceil(boletos.length / boletosPorPagina);
   const indiceInicio = (paginaActual - 1) * boletosPorPagina;
@@ -358,6 +395,18 @@ const SorteoDetalles = () => {
       <Sidebar />
       <div className="flex-grow-1" style={{ marginLeft: "80px" }}>
         <div className="container py-4">
+          {/* Etiqueta del usuario */}
+          <p
+            style={{
+              color: "#000",
+              fontSize: "0.9rem",
+              fontWeight: "400",
+              maxWidth: "100%",
+              marginBottom: "0.5rem",
+            }}
+          >
+            {`${nombreUsuario} / ${rolFormateado}`}
+          </p>
           <h2 className="fw-bold mb-3">{sorteo.nombre}</h2>
           <div className="sorteo-detalle-card p-4 mb-4">
             <h5 className="fw-bold mb-2">Descripción</h5>
@@ -495,7 +544,10 @@ const SorteoDetalles = () => {
                     key={num}
                     className={`boleto ${estadoBoleto(num)}`}
                     onClick={() => alternarSeleccion(num)}
-                    disabled={!!boletosEstadoMap[num]}
+                    disabled={
+                      estadoBoleto(num) === "vendido" ||
+                      estadoBoleto(num) === "apartado" // solo apartados de otros
+                    }
                   >
                     {num}
                   </button>

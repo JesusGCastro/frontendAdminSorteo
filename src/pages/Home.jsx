@@ -51,8 +51,8 @@ const Home = () => {
       if (esParticipante) {
         if (estadoFiltro === "todos") data = await consultarSorteos();
         if (estadoFiltro === "participando") {
-          data = null
-          //data = await consultarSorteosDeParticipante(await getToken());
+          data = await consultarSorteosDeParticipante(await getToken());
+          console.log("Sorteos del participante:", data);
         }
       }
 

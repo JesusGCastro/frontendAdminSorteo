@@ -86,18 +86,19 @@ export const consultarSorteosFinalizados = async () => {
   return data;
 };
 
-//Consultar sorteos de un participante
-export const consultarSorteosDeParticipante = async (participanteId) => {
-  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/participant/${participanteId}`, {
+export const consultarSorteosDeParticipante = async (token) => {
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/my-raffles`, {
     method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
   });
 
   if (!res.ok) {
     throw new Error(`Error al obtener sorteos: ${res.status}`);
   }
 
-  const data = await res.json();
-  return data;
+  return await res.json();
 };
 
 // Obtener sorteo por ID
@@ -134,9 +135,17 @@ export const actualizarSorteo = async (sorteoId, sorteoData, token) => {
     body: JSON.stringify(sorteoData),
   });
 
-  if (!res.ok) {
-    throw new Error(`Error al actualizar sorteo: ${res.status}`);
-  }
+  // Si la respuesta no fue exitosa
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Error del backend:", errorText);
+
+      if (res.status === 401) {
+        throw new Error("Token inválido o expirado");
+      }
+
+      throw new Error(`Error al actualizar sorteo: (${res.status})`);
+    }
 
   const data = await res.json();
   return data;
@@ -180,6 +189,19 @@ export const apartarNumeros = async (sorteoId, numeros, token) => {
 
   const data = await res.json();
   return data;
+}
+
+export const liberarNumeros = async (sorteoId, numeros, token) => {
+  /*
+  const bodyData = { numerosBoletos: numeros };
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${sorteoId}/tickets/release`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(bodyData),*/
+  //});
 }
 
 // Comprar boletos
@@ -576,6 +598,11 @@ export const obtenerBoletosApartadosPorUsuario = async (raffleId, token) => {
     if (!res.ok) {
       const errorText = await res.text();
       console.error("Error del backend:", errorText);
+
+      if (res.status === 401) {
+        throw new Error("Token inválido o expirado");
+      }
+
       throw new Error(`Error al obtener boletos apartados (${res.status})`);
     }
 
@@ -592,48 +619,54 @@ export const obtenerBoletosApartadosPorUsuario = async (raffleId, token) => {
 };
 
 export const getDetallesPago = async (paymentId, token) => {
-    try {
-        const response = await fetch(`${API_URL}/${RAFFLES_PATH}/payments/details/${paymentId}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-            },
-        });
+  try {
+    const response = await fetch(`${API_URL}/${RAFFLES_PATH}/payments/details/${paymentId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
 
-        if (!response.ok) {
-            throw new Error("Error al obtener detalles del pago");
-        }
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error("Error en getDetallesPago:", error);
-        return null;
+    if (!response.ok) {
+      throw new Error("Error al obtener detalles del pago");
     }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error en getDetallesPago:", error);
+    return null;
+  }
 };
 
-// Metodo que simula obtener pagos de un sorteo en formato JSON
 export const getPagosSorteo = async (raffleId, token) => {
-    try {
-        const response = await fetch(`${API_URL}/${RAFFLES_PATH}/payments/${raffleId}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-            },
-        });
+  try {
+    const res = await fetch(`${API_URL}/${RAFFLES_PATH}/payments/${raffleId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
 
-        if (!response.ok) {
-            throw new Error("Error al obtener los pagos del sorteo");
-        }
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Error del backend:", errorText);
 
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error("getPagosSorteo ERROR:", error);
-        return [];
+      if (res.status === 401) {
+        throw new Error("Token inválido o expirado");
+      }
+
+      throw new Error(`Error al obtener los pagos del sorteo (${res.status})`);
     }
+
+    return await res.json();
+
+  } catch (error) {
+    console.error("Error en getPagosSorteo:", error);
+    throw error; // ← NECESARIO PARA MOSTRAR EL TOAST
+  }
 };
 
 // Obtener boletos apartados de un sorteo (Vista Sorteador)
@@ -649,9 +682,15 @@ export const getBoletosApartadosSorteo = async (raffleId, token) => {
 
     console.log("Respuesta getBoletosApartadosSorteo (status):", res.status);
 
+    // Si la respuesta no fue exitosa
     if (!res.ok) {
       const errorText = await res.text();
       console.error("Error del backend:", errorText);
+
+      if (res.status === 401) {
+        throw new Error("Token inválido o expirado");
+      }
+
       throw new Error(`Error al obtener boletos apartados del sorteo (${res.status})`);
     }
 
