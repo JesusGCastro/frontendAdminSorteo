@@ -1,6 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { resolve } from "path";
 
+test.describe("", () => {
+  test("SCS 1. Prueba vacia", async ({ page }) => {
+  });
+});
+
+/*
 const generateFutureDateTime = (daysAhead, hoursAhead = 0, minutesAhead = 0) => {
   const date = new Date();
   date.setDate(date.getDate() + daysAhead);
@@ -296,4 +302,5 @@ test.describe("", () => {
     
     await expect(page).toHaveURL('http://localhost:5173/frontendAdminSorteo/#/');
   });
-});*/
+});
+*/
