@@ -1,0 +1,82 @@
+.modal-boletos {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  padding: 20px 24px 10px;
+}
+
+.modal-body {
+  padding: 10px 24px 20px;
+}
+
+.modal-footer {
+  padding: 20px 24px 24px;
+}
+
+/* Grid de boletos - disposición horizontal */
+.boletos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 10px;
+  justify-content: center;
+}
+
+/* Cada badge de boleto */
+.boleto-badge {
+  background: white;
+  color: black;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-align: center;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(182, 70, 220, 0.3);
+  transition: transform 0.2s;
+}
+
+.boleto-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(182, 70, 220, 0.4);
+}
+
+/* Scrollbar personalizado */
+.boletos-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.boletos-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.boletos-grid::-webkit-scrollbar-thumb {
+  background: #B646DC;
+  border-radius: 10px;
+}
+
+.boletos-grid::-webkit-scrollbar-thumb:hover {
+  background: #9636b8;
+}
+
+/* Botones */
+.btn-cancelar {
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-cancelar:hover {
+  background-color: transparent !important;
+  color: red !important;
+  text-decoration: underline;
+}
+
+.btn-liberar:hover {
+  background-color: #B646DC !important;
+}

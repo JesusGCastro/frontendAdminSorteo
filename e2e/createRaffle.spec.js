@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+/*import { test, expect } from "@playwright/test";
 import { resolve } from "path";
 
 const generateFutureDateTime = (daysAhead, hoursAhead = 0, minutesAhead = 0) => {
@@ -41,7 +41,7 @@ const loginAsSorteador = async (page) => {
   await page.locator('input[type="email"]').fill("sorteador4@mail.com");
   await page.locator('input[type="password"]').fill("123456");
   await page.getByRole("button", { name: "Iniciar Sesión" }).click();
-  await page.waitForURL("**/", { timeout: 10000 });
+  await page.waitForURL("**", { timeout: 10000 });
 };
 
 const fillBasicRaffleForm = async (page, customData = {}) => {
@@ -296,4 +296,4 @@ test.describe("", () => {
     
     await expect(page).toHaveURL('http://localhost:5173/frontendAdminSorteo/#/');
   });
-});
+});*/

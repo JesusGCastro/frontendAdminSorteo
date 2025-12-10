@@ -206,3 +206,13 @@ export const getUserProfile = async (token) => {
     throw err;
   }
 };
+
+//Guarda el nombre del sorteo en el localStorage
+export const setNombreSorteo = (nombreSorteo) => {
+  localStorage.setItem("nombreSorteo", nombreSorteo);
+};
+
+//Obtiene el nombre del sorteo del localStorage
+export const getNombreSorteo = () => {
+  return localStorage.getItem("nombreSorteo");
+}

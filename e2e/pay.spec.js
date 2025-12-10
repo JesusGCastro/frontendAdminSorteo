@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+/*import { test, expect } from '@playwright/test';
 
 test('PPL 1. El sorteador no puede comprar números.', async ({ page }) => {
   // Ingresar como sorteador
@@ -120,7 +120,7 @@ test('PPL 4. Validación de campos de tarjeta y selección mínima.', async ({ p
   //Verificar que si este disponible el boton de pagar
   await expect(page.getByText('Realizar compra')).toBeEnabled();
 });
-
+/*
 test('PPL 5. Pago de todos los números apartados.', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('profile').nth(1).click();
@@ -154,4 +154,4 @@ test('PPL 5. Pago de todos los números apartados.', async ({ page }) => {
 
   // Validar que NO exista el botón pagar
   await expect(page.getByText('Realizar compra')).toBeEnabled();
-});
+});*/

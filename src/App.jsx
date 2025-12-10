@@ -9,6 +9,9 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import SorteoDetalles from "./pages/SorteoDetalles";
 import CrearSorteo from "./pages/CrearSorteo";
 import EditarSorteo from "./pages/EditarSorteo";
+import PagoDetalles from "./pages/PagoDetalles";
+import SorteoBoletos from "./pages/SorteoBoletos";
+import SorteoPagos from "./pages/SorteoPagos";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PagarNumeros from "./pages/PagarNumeros";
@@ -33,6 +36,12 @@ function App() {
           <Route path="/crear-sorteo" element={<CrearSorteo />} />
           {/* Página para editar un sorteo */}
           <Route path="/edicionSorteos/:id" element={<EditarSorteo />} />
+          {/* Página para consultar pagos de un sorteo*/}
+          <Route path="/edicionSorteos/:id/pagos" element={<SorteoPagos />} />
+          {/* Página para consultar boletos de un sorteo */}
+          <Route path="/edicionSorteos/:id/boletos" element={<SorteoBoletos />} />
+          {/* Página para consultar los detalles de un pago*/}
+          <Route path="/edicionSorteos/:id/pagos/:pagoId" element={<PagoDetalles />} />
           {/* Página para pagar en linea un número */}
           <Route path="/pagar/:id" element={<PagarNumeros />} />
           {/* Página para pagar por transferencia un número */}

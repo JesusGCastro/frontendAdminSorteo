@@ -1,5 +1,6 @@
 // src/api.js
-const API_URL = "https://apigatewaysorteos.onrender.com"; // local: http://localhost:10000
+//const API_URL = "https://apigatewaysorteos.onrender.com";
+const API_URL = "http://localhost:10000";
 const RAFFLES_PATH = "api/raffles";
 const IMGBB_API_KEY = "b234eceb83416a07c80c0d0397f718ad"
 const CLOUDINARY_CLOUD_NAME = "dtejuoctt";
@@ -560,7 +561,7 @@ export const registarTransBoletosApartados = async (raffleId, tickets, monto, vo
 export const obtenerBoletosApartadosPorUsuario = async (raffleId, token) => {
   console.log("Token recibido para perfil:", token);
 
-  try{
+  try {
     const res = await fetch(`${API_URL}/${RAFFLES_PATH}/tickets/aparted/${raffleId}/user`, {
       method: "GET",
       headers: {
@@ -568,7 +569,7 @@ export const obtenerBoletosApartadosPorUsuario = async (raffleId, token) => {
         "Authorization": `Bearer ${token}`,
       }
     });
-  
+
     console.log("Respuesta recibida (status):", res.status);
 
     // Si la respuesta no fue exitosa
@@ -589,5 +590,150 @@ export const obtenerBoletosApartadosPorUsuario = async (raffleId, token) => {
   }
 
 };
+
+export const getDetallesPago = async (paymentId, token) => {
+    try {
+        const response = await fetch(`${API_URL}/${RAFFLES_PATH}/payments/details/${paymentId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error("Error al obtener detalles del pago");
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error en getDetallesPago:", error);
+        return null;
+    }
+};
+
+// Metodo que simula obtener pagos de un sorteo en formato JSON
+export const getPagosSorteo = async (raffleId, token) => {
+    try {
+        const response = await fetch(`${API_URL}/${RAFFLES_PATH}/payments/${raffleId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error("Error al obtener los pagos del sorteo");
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("getPagosSorteo ERROR:", error);
+        return [];
+    }
+};
+
+// Obtener boletos apartados de un sorteo (Vista Sorteador)
+export const getBoletosApartadosSorteo = async (raffleId, token) => {
+  try {
+    const res = await fetch(`${API_URL}/${RAFFLES_PATH}/admin/tickets/reserved/${raffleId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    console.log("Respuesta getBoletosApartadosSorteo (status):", res.status);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Error del backend:", errorText);
+      throw new Error(`Error al obtener boletos apartados del sorteo (${res.status})`);
+    }
+
+    const data = await res.json();
+    console.log("Boletos apartados obtenidos correctamente:", data);
+    return data;
+
+  } catch (err) {
+    console.error("Error en getBoletosApartadosSorteo:", err);
+    throw err;
+  }
+};
+
+// Liberar boletos apartados (Solo Sorteador)
+export const liberarBoletosApartados = async (raffleId, numerosBoletos, token) => {
+  if (!numerosBoletos || !Array.isArray(numerosBoletos) || numerosBoletos.length === 0) {
+    throw new Error("Debes proporcionar al menos un número de boleto para liberar");
+  }
+
+  const bodyData = { numerosBoletos };
+
+  try {
+    const res = await fetch(`${API_URL}/${RAFFLES_PATH}/admin/tickets/release/${raffleId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(bodyData),
+    });
+
+    console.log("Respuesta liberarBoletosApartados (status):", res.status);
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Error ${res.status}: No se pudieron liberar los boletos.`);
+    }
+
+    const data = await res.json();
+    console.log("Boletos liberados exitosamente:", data);
+    return data;
+
+  } catch (err) {
+    console.error("Error en liberarBoletosApartados:", err);
+    throw err;
+  }
+};
+
+// Marcar boletos como pagados y pago como completado (Solo Sorteador)
+export const confirmarPagoAdmin = async (raffleId, paymentId, numerosBoletos, token) => {
+  if (!numerosBoletos || !Array.isArray(numerosBoletos) || numerosBoletos.length === 0) {
+    throw new Error("Debes proporcionar los números de boletos a confirmar.");
+  }
+
+  const bodyData = { numerosBoletos };
+
+  try {
+    const res = await fetch(`${API_URL}/${RAFFLES_PATH}/admin/tickets/mark-paid/${raffleId}/payment/${paymentId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(bodyData),
+    });
+
+    console.log("Respuesta confirmarPagoAdmin (status):", res.status);
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Error ${res.status}: No se pudo confirmar el pago.`);
+    }
+
+    const data = await res.json();
+    return data;
+
+  } catch (err) {
+    console.error("Error en confirmarPagoAdmin:", err);
+    throw err;
+  }
+};
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
