@@ -1,4 +1,4 @@
-/*import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 test('IS 1. Iniciar sesion con credenciales validas.', async ({ page }) => {
   // Abrimos la pagina y seleccionamos el boton de login
@@ -13,7 +13,7 @@ test('IS 1. Iniciar sesion con credenciales validas.', async ({ page }) => {
   await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
 
   // Comprobamos que hemos iniciado sesion correctamente, viendo el nombre del usuario en la parte de arriba de la pagina
-  await expect(page.getByText('Carlos / Participante')).toBeVisible({ 
+  await expect(page.getByText('Carlos Perez / Participante')).toBeVisible({ 
     timeout: 10000 
   });
 });
@@ -121,5 +121,5 @@ test('IS 8. Sorteador cambia a vista de participante y de vuelta.', async ({ pag
   await page.locator('input[type="password"]').fill('123456');
   await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
   await page.getByTestId('switch').nth(1).click();
-  await page.getByText('Sorteador4 / Participante').click();
-});	*/
+  await expect (page.getByText('Sorteador 4 / Participante')).toBeVisible();
+});

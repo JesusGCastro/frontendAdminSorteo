@@ -104,6 +104,7 @@
   background-color: #c19ae8;
   color: white;
   border: none;
+  cursor: not-allowed;
 }
 
 .boleto.mi_apartado {
@@ -114,6 +115,7 @@
 .boleto.mi_comprado {
   background-color: #8ecaf5;
   border: 1px solid #4a90e2;
+  cursor: not-allowed;
 }
 
 .boleto.seleccionado {

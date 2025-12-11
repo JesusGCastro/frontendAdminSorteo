@@ -1,4 +1,4 @@
-/*import { test, expect } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 
 const loginAsSorteador = async (page) => {
@@ -27,18 +27,17 @@ test ("SCCP 1 - Sorteador visualiza pagos realizados por participantes", async (
 test ("SCCP 2 - Sorteador visualiza los detalles de un pago de transferencia", async ({ page }) => {
     await loginAsSorteador(page);
     await seleccionarSorteo(page);
-    await page.getByRole('cell', { name: '-11-27 12:27' }).click();
+    await page.getByRole('cell', { name: '-12-10 11:47' }).click();
     await expect (page.getByRole('img', { name: 'Comprobante' })).toBeVisible();
 });
 
 test ("SCCP 3 - Sorteador visualiza los detalles de un pago en linea", async ({ page }) => {
     await loginAsSorteador(page);
     await seleccionarSorteo(page);
-    await page.getByRole('button', { name: '' }).click();
-    await page.getByRole('cell', { name: '-11-26 22:21' }).click();
+    await page.getByRole('cell', { name: '-12-10 11:25' }).click();
     await expect (page.getByText('Clave de rastreo: PAY-')).toBeVisible();
 
 });
 
 
-*/
+

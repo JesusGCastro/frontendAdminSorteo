@@ -53,7 +53,7 @@ const SorteoBoletos = () => {
 
       } catch (error) {
         console.error("Error cargando datos:", error);
-        toast.error("Error al cargar los boletos apartados");
+        toast.error(error.message || "Error al cargar los boletos.");
       } finally {
         setLoading(false);
       }

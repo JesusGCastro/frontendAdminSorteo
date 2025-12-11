@@ -1,4 +1,4 @@
-/*import { test, expect } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 test("PAN 1. Mostrar sorteos de inicio.", async ({ page }) => {
   // Abrimos la pagina principal
@@ -112,4 +112,3 @@ test("PAN 8. Apartar numero superando el limite por participante.", async ({
   });
   await page.getByRole("button", { name: "Apartar números" }).click();
 });
-*/

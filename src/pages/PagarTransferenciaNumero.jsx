@@ -47,9 +47,10 @@ const PagarTransferenciaNumeros = () => {
         setSorteo(dataSorteo);
         setBoletosApartados(dataBoletosApartados);
       } catch (error) {
-        toast.error("Error al cargar los datos del sorteo.");
+        toast.error(error.message || "Error al cargar los datos del sorteo.");
         console.error("Detalle del error en cargarDatos:", error);
-      } finally {
+      }
+      finally {
         setCargando(false);
       }
     };
@@ -84,15 +85,26 @@ const PagarTransferenciaNumeros = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
+    const validTypes = ["image/png", "image/jpeg"]; // PNG y JPG/JPEG
+
+    if (!validTypes.includes(file.type)) {
+      toast.error("Solo se permiten archivos PNG o JPG.");
+      e.target.value = ""; // limpia el input
+      setImagenArchivo(null);
+      return;
+    }
+
     setImagenArchivo(file);
   };
 
   // Limpiar la URL del objeto de imagen cuando el componente se desmonte o el archivo cambie
   useEffect(() => {
     if (imagenArchivo) {
-        const objectUrl = URL.createObjectURL(imagenArchivo);
-        // Retorna una función de limpieza para revocar la URL
-        return () => URL.revokeObjectURL(objectUrl);
+      const objectUrl = URL.createObjectURL(imagenArchivo);
+      // Retorna una función de limpieza para revocar la URL
+      return () => URL.revokeObjectURL(objectUrl);
     }
   }, [imagenArchivo]);
 
@@ -103,7 +115,7 @@ const PagarTransferenciaNumeros = () => {
 
     setComprarTodos(
       boletosHabilitados.length > 0 &&
-        boletosSeleccionados.length === boletosHabilitados.length
+      boletosSeleccionados.length === boletosHabilitados.length
     );
   }, [boletosSeleccionados, boletosApartados]);
 
@@ -120,7 +132,7 @@ const PagarTransferenciaNumeros = () => {
       total,
     };
   };
-  
+
 
   const totalCompra = calcularTotal();
 
@@ -247,18 +259,18 @@ const PagarTransferenciaNumeros = () => {
                   />
                   <span className="flex-grow-1 d-flex align-items-center px-3">
                     {imagenArchivo ? (
-                        <img
-                            src={URL.createObjectURL(imagenArchivo)}
-                            alt="Comprobante de transferencia"
-                            style={{
-                                width: "60px",
-                                height: "60px",
-                                objectFit: "cover",
-                                borderRadius: "8px"
-                            }}
-                        />
+                      <img
+                        src={URL.createObjectURL(imagenArchivo)}
+                        alt="Comprobante de transferencia"
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          objectFit: "cover",
+                          borderRadius: "8px"
+                        }}
+                      />
                     ) : (
-                        "No se eligió ningún archivo"
+                      "No se eligió ningún archivo"
                     )}
                   </span>
                 </div>
@@ -303,7 +315,7 @@ const PagarTransferenciaNumeros = () => {
                           ${isPendiente ? "pendiente" : ""}
                         `}
                         onClick={() => {
-                          if (isPendiente) return; 
+                          if (isPendiente) return;
                           handleToggleSeleccion(b.numeroBoleto);
                         }}
                         style={{

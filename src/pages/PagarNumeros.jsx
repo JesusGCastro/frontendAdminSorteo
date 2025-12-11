@@ -107,7 +107,7 @@ const PagarNumeros = () => {
                     getSorteoById(id),
                     getBoletosPorSorteo(id),
                     obtenerBoletosApartadosPorUsuario(id, session.token),
-                ]); 
+                ]);
                 setSorteo(dataSorteo);
                 setBoletosApartados(dataBoletosApartados);
 
@@ -123,7 +123,7 @@ const PagarNumeros = () => {
                     setBoletosApartados([]);
                 }*/
             } catch (error) {
-                toast.error("Error al cargar los datos del sorteo.");
+                toast.error(error.message || "Error al cargar los datos del sorteo.");
                 console.error("Detalle del error en cargarDatos:", error);
             } finally {
                 setCargando(false);
@@ -382,7 +382,7 @@ const PagarNumeros = () => {
                                                 `}
                                                 onClick={() => {
                                                     // DESHABILITAR SELECCIÓN SI ES PENDIENTE
-                                                    if (isPendiente) return; 
+                                                    if (isPendiente) return;
                                                     handleToggleSeleccion(b.numeroBoleto);
                                                 }}
                                                 // CURSOR DESHABILITADO

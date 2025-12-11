@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
-import { getSession, getToken, crearSorteo, uploadImageToCloudinary} from "../services/api";
+import { getSession, getToken, crearSorteo, uploadImageToCloudinary } from "../services/api";
 import { toast } from 'react-toastify';
 
 const CrearSorteo = () => {
@@ -14,7 +14,7 @@ const CrearSorteo = () => {
     rolActual.charAt(0).toUpperCase() + rolActual.slice(1).toLowerCase();
 
   const [formData, setFormData] = useState({
-    nombre: "", 
+    nombre: "",
     descripcion: "",
     precioBoleto: "",
     cantidadMaximaBoletos: "",
@@ -24,7 +24,7 @@ const CrearSorteo = () => {
     limiteBoletosPorUsuario: "",
     premio: ""
   });
-  
+
   const [imagenArchivo, setImagenArchivo] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [minDate, setMinDate] = useState("");
@@ -39,15 +39,50 @@ const CrearSorteo = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    let newValue = value;
+
+    // Limitar precioBoleto a 7 caracteres
+    if (name === "precioBoleto") {
+      newValue = value.slice(0, 7);
+    }
+
+    //Limitar numero de boletos
+    if (name === "cantidadMaximaBoletos") {
+      newValue = value.slice(0, 5);
+    }
+
+    if (name === "limiteBoletosPorUsuario") {
+      newValue = value.slice(0, 5);
+    }
+
+    setFormData({
+      ...formData,
+      [name]: newValue,
+    });
   };
+
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setImagenArchivo(file); 
+    if (!file) return;
+
+    const validTypes = ["image/png", "image/jpeg"]; // PNG y JPG/JPEG
+
+    if (!validTypes.includes(file.type)) {
+      toast.error("Solo se permiten archivos PNG o JPG.");
+      e.target.value = ""; // limpia el input
+      setImagenArchivo(null);
+      return;
+    }
+
+    setImagenArchivo(file);
+
+    // Guardar el archivo en el formData
+    setFormData(prev => ({
+      ...prev,
+      urlImagen: file
+    }));
   };
 
   const handleCancelar = () => {
@@ -62,95 +97,117 @@ const CrearSorteo = () => {
   };
 
   const validarFormulario = () => {
+    // Validar que las fechas tengan formato de datetime-local (incluye "T")
+    if (
+      !formData.fechaInicialVentaBoletos.includes("T") ||
+      !formData.fechaFinalVentaBoletos.includes("T") ||
+      !formData.fechaRealizacion.includes("T")
+    ) {
+      toast.error("Selecciona las fechas usando el botón del calendario.");
+      return false;
+    }
+
+    const fechaInicio = new Date(formData.fechaInicialVentaBoletos);
+    const fechaFin = new Date(formData.fechaFinalVentaBoletos);
+    const fechaRealizacion = new Date(formData.fechaRealizacion);
+
     if (parseFloat(formData.precioBoleto) <= 0) {
       toast.error("El precio del boleto debe ser mayor a cero.");
       return false;
     }
-    
+
     if (parseInt(formData.cantidadMaximaBoletos) <= 0) {
       toast.error("El número de boletos debe ser mayor a cero.");
       return false;
     }
-    
+
     if (parseInt(formData.limiteBoletosPorUsuario) <= 0) {
       toast.error("El límite de boletos por persona debe ser mayor a cero.");
       return false;
     }
 
     const ahora = new Date();
-    const ahoraConMargen = new Date(ahora.getTime() - (2 * 60 * 1000)); // Margen de 2 min
-    
-    const fechaInicio = new Date(formData.fechaInicialVentaBoletos);
-    const fechaFin = new Date(formData.fechaFinalVentaBoletos);
-    const fechaRealizacion = new Date(formData.fechaRealizacion);
+    const ahoraConMargen = new Date(ahora.getTime() - 2 * 60 * 1000);
 
     if (fechaInicio < ahoraConMargen) {
-      toast.error("La fecha de inicio de venta no puede ser anterior a la fecha actual.");
+      toast.error("La fecha de inicio no puede ser anterior a la actual.");
       return false;
     }
 
     if (fechaFin < ahoraConMargen) {
-      toast.error("La fecha de fin de venta no puede ser anterior a la fecha actual.");
+      toast.error("La fecha de fin no puede ser anterior a la actual.");
       return false;
     }
 
     if (fechaRealizacion < ahoraConMargen) {
-      toast.error("La fecha de realización no puede ser anterior a la fecha actual.");
+      toast.error("La fecha de realización no puede ser anterior a la actual.");
       return false;
     }
 
     if (fechaFin <= fechaInicio) {
-      toast.error("La fecha de fin de venta debe ser posterior a la fecha de inicio.");
+      toast.error("La fecha de fin debe ser posterior a la de inicio.");
       return false;
     }
 
     if (fechaRealizacion <= fechaFin) {
-      toast.error("La fecha de realización del sorteo debe ser posterior a la fecha de fin de venta.");
+      toast.error("La fecha de realización debe ser posterior a la fecha de fin.");
       return false;
     }
 
     return true;
   };
 
+
+  const normalizarFecha = (valor) => {
+    if (!valor) return valor;
+
+    // datetime-local correcto trae "T"
+    if (!valor.includes("T")) {
+      return valor + "T12:00";
+    }
+
+    return valor;
+  };
+
   const handleCrearSorteo = async () => {
     // Aseguramos que el estado 'imagenArchivo' contenga el objeto File
     if (!imagenArchivo) {
-        toast.error("Por favor, selecciona una imagen para el sorteo.");
-        return;
+      toast.error("Por favor, selecciona una imagen para el sorteo.");
+      return;
     }
 
     if (!validarFormulario()) {
       return;
     }
-    
+
     setCargando(true);
 
     try {
-        const token = getToken();
-        if (!token) {
-            toast.error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
-            navigate('/login');
-            return;
-        }
+      const token = getToken();
+      if (!token) {
+        toast.error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
+        navigate('/login');
+        return;
+      }
 
-        const urlImagen = await uploadImageToCloudinary(imagenArchivo); 
+      const urlImagen = await uploadImageToCloudinary(imagenArchivo);
 
-        const dataParaEnviar = {
-            ...formData, 
-            urlImagen: urlImagen 
-        };
+      const dataParaEnviar = {
+        ...formData,
+        urlImagen: urlImagen
+      };
 
-        await crearSorteo(dataParaEnviar, token);
+      await crearSorteo(dataParaEnviar, token);
 
-        toast.success("¡Sorteo creado exitosamente!");
-        navigate('/');
+      toast.success("¡Sorteo creado exitosamente!");
+      navigate('/');
 
     } catch (error) {
 
-        const errorMessage = error.message || "Error desconocido al crear el sorteo.";
-        toast.error(`Error al crear el sorteo: ${errorMessage}`);
+      const errorMessage = error.message || "Error desconocido al crear el sorteo.";
+      toast.error(`Error al crear el sorteo: ${errorMessage}`);
     } finally {
-        setCargando(false);
+      setCargando(false);
     }
   };
 
@@ -175,7 +232,7 @@ const CrearSorteo = () => {
           <form onSubmit={(e) => { e.preventDefault(); handleCrearSorteo(); }} noValidate>
             <div className="row g-4">
               <div className="col-md-6">
-                
+
                 {/* Nombre de la rifa */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Nombre de la rifa</label>
@@ -189,7 +246,7 @@ const CrearSorteo = () => {
                     maxLength={50}
                     required
                   />
-                  <div className="text-end text-muted" style={{fontSize: '0.75rem'}}>
+                  <div className="text-end text-muted" style={{ fontSize: '0.75rem' }}>
                     {formData.nombre.length}/50
                   </div>
                 </div>
@@ -207,7 +264,7 @@ const CrearSorteo = () => {
                     maxLength={250}
                     required
                   />
-                  <div className="text-end text-muted" style={{fontSize: '0.75rem'}}>
+                  <div className="text-end text-muted" style={{ fontSize: '0.75rem' }}>
                     {formData.descripcion.length}/250
                   </div>
                 </div>
@@ -260,15 +317,45 @@ const CrearSorteo = () => {
                       onChange={handleFileChange}
                       required
                     />
-                    <span className="flex-grow-1 d-flex align-items-center px-3">
-                      {imagenArchivo ? imagenArchivo.name : "No se eligió ningún archivo"}
+                    <span
+                      className="flex-grow-1 d-flex align-items-center px-3"
+                      style={{ color: "#666", fontSize: "14px" }}
+                    >
+                      {formData.urlImagen ? (
+                        typeof formData.urlImagen === "string" ? (
+                          <img
+                            src={formData.urlImagen}
+                            alt="Imagen del sorteo"
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              objectFit: "cover",
+                              borderRadius: "8px"
+                            }}
+                          />
+                        ) : (
+                          <img
+                            src={URL.createObjectURL(formData.urlImagen)}
+                            alt="Nueva imagen"
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              objectFit: "cover",
+                              borderRadius: "8px"
+                            }}
+                          />
+                        )
+                      ) : (
+                        "No se eligió ningún archivo"
+                      )}
+
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className="col-md-6">
-                
+
                 {/* Premio */}
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Premio</label>
@@ -282,7 +369,7 @@ const CrearSorteo = () => {
                     maxLength={100}
                     required
                   />
-                   <div className="text-end text-muted" style={{fontSize: '0.75rem'}}>
+                  <div className="text-end text-muted" style={{ fontSize: '0.75rem' }}>
                     {formData.premio.length}/100
                   </div>
                 </div>
@@ -295,7 +382,7 @@ const CrearSorteo = () => {
                       <label className="form-label">Inicio</label>
                       <input
                         type="datetime-local"
-                        name="fechaInicialVentaBoletos" 
+                        name="fechaInicialVentaBoletos"
                         className="form-control border-0"
                         style={{ backgroundColor: "#f3e5f5", borderRadius: "10px", padding: "12px 16px" }}
                         value={formData.fechaInicialVentaBoletos}
@@ -361,8 +448,8 @@ const CrearSorteo = () => {
               >
                 Cancelar
               </button>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn d-flex align-items-center px-4 py-2"
                 style={{ backgroundColor: "#DAA1ED", color: "black", borderRadius: "25px", fontWeight: "600", border: "none" }}
                 disabled={cargando}

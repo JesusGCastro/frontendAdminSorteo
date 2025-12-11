@@ -14,6 +14,7 @@ const EditarSorteo = () => {
     const [sorteo, setSorteo] = useState(null);
     const [backup, setBackup] = useState({});
     const [diasRestantes, setDiasRestantes] = useState(0);
+    const [imagenArchivo, setImagenArchivo] = useState(null);
 
     // Mostrar nombre o "Sorteador Anonimo"
     const nombreUsuario = session?.user?.nombre || "Sorteador Anonimo";
@@ -60,11 +61,11 @@ const EditarSorteo = () => {
                     urlImagen: data.raffle.urlImagen || "",
                     estado: data.raffle.estado || "activo",
 
-                    montoRecaudado: data.estadisticas?.montoRecaudado || "",
-                    montoPorRecaudar: data.estadisticas?.montoPorRecaudar || "",
-                    boletosComprados: data.estadisticas?.boletosComprados || "",
-                    boletosApartados: data.estadisticas?.boletosApartados || "",
-                    totalBoletosDisponibles: data.estadisticas?.totalBoletosDisponibles || ""
+                    montoRecaudado: data.estadisticas?.montoRecaudado || "0",
+                    montoPorRecaudar: data.estadisticas?.montoPorRecaudar || "0",
+                    boletosComprados: data.estadisticas?.boletosComprados || "0",
+                    boletosApartados: data.estadisticas?.boletosApartados || "0",
+                    totalBoletosDisponibles: data.estadisticas?.totalBoletosDisponibles || "0"
                 };
 
                 setFormData(mapeado);
@@ -112,6 +113,17 @@ const EditarSorteo = () => {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        const validTypes = ["image/png", "image/jpeg"]; // PNG y JPG/JPEG
+
+        if (!validTypes.includes(file.type)) {
+            toast.error("Solo se permiten archivos PNG o JPG.");
+            e.target.value = ""; // limpia el input
+            setImagenArchivo(null);
+            return;
+        }
+
+        setImagenArchivo(file);
 
         // Guardar el archivo en el formData
         setFormData(prev => ({
@@ -193,7 +205,7 @@ const EditarSorteo = () => {
             toast.success("Sorteo actualizado exitosamente.");
         } catch (error) {
             console.error(error);
-            toast.error("Error al actualizar el sorteo. Intenta de nuevo.");
+            toast.error(error.message || "Error al actualizar el sorteo.");
         }
     };
 
@@ -204,7 +216,8 @@ const EditarSorteo = () => {
             fechaInicialVentaBoletos,
             fechaFinalVentaBoletos,
             fechaRealizacion,
-            limiteBoletosPorUsuario
+            limiteBoletosPorUsuario,
+            estado,
         } = formData;
 
         // Descripción: no vacía ni solo espacios
@@ -232,6 +245,7 @@ const EditarSorteo = () => {
         const fi = new Date(fechaInicialVentaBoletos);
         const ff = new Date(fechaFinalVentaBoletos);
         const fr = new Date(fechaRealizacion);
+        const hoy = new Date();
 
         // Inicio < Fin del periodo de ventas
         if (fi >= ff) {
@@ -242,6 +256,11 @@ const EditarSorteo = () => {
         // Fin > Realización (el sorteo se realiza después del fin de ventas)
         if (ff >= fr) {
             toast.error("La fecha de realización debe ser después del fin del periodo de ventas.");
+            return;
+        }
+
+        if (estado.toLowerCase() === "finalizado" && hoy <= ff) {
+            toast.error("No puedes finalizar el sorteo antes de que termine la venta de boletos.");
             return;
         }
 
@@ -422,8 +441,6 @@ const EditarSorteo = () => {
                                         )}
 
                                     </span>
-
-
                                 </div>
                             </div>
 
