@@ -113,7 +113,7 @@ test.describe("", () => {
     // Subir imagen
     const mockImagePath = resolve("./e2e/ps5-mock.png");
     await page.locator("#file-upload").setInputFiles(mockImagePath);
-    await expect(page.getByText("ps5-mock.png")).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Nueva imagen' })).toBeVisible();
 
     // Crear sorteo
     await page.getByRole("button", { name: "Crear Sorteo" }).click();
@@ -145,7 +145,7 @@ test.describe("", () => {
 
     await page.getByRole("button", { name: "Crear Sorteo" }).click();
 
-    await waitForToast(page, "La fecha de inicio de venta no puede ser anterior a la fecha actual.");
+    await waitForToast(page, "La fecha de inicio no puede ser anterior a la actual.");
   });
 
   test("SCS 3. Error cuando fecha de fin de venta es pasada", async ({ page }) => {
@@ -159,7 +159,7 @@ test.describe("", () => {
 
     await page.getByRole("button", { name: "Crear Sorteo" }).click();
 
-    await waitForToast(page, "La fecha de fin de venta no puede ser anterior a la fecha actual.");
+    await waitForToast(page, "La fecha de fin no puede ser anterior a la actual.");
   });
 
   test("SCS 4. Error cuando fecha de realización es pasada", async ({ page }) => {
@@ -173,7 +173,7 @@ test.describe("", () => {
 
     await page.getByRole("button", { name: "Crear Sorteo" }).click();
 
-    await waitForToast(page, "La fecha de realización no puede ser anterior a la fecha actual.");
+    await waitForToast(page, "La fecha de realización no puede ser anterior a la actual.");
   });
 
   test("SCS 5. Error cuando fecha fin <= fecha inicio", async ({ page }) => {
@@ -187,7 +187,7 @@ test.describe("", () => {
 
     await page.getByRole("button", { name: "Crear Sorteo" }).click();
 
-    await waitForToast(page, "La fecha de fin de venta debe ser posterior a la fecha de inicio.");
+    await waitForToast(page, "La fecha de fin debe ser posterior a la de inicio.");
   });
 
   test("SCS 6. Error cuando fecha realización <= fecha fin", async ({ page }) => {
@@ -201,7 +201,7 @@ test.describe("", () => {
 
     await page.getByRole("button", { name: "Crear Sorteo" }).click();
 
-    await waitForToast(page, "La fecha de realización del sorteo debe ser posterior a la fecha de fin de venta.");
+    await waitForToast(page, "La fecha de realización debe ser posterior a la fecha de fin.");
   });
 });
 

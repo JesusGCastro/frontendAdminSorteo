@@ -72,7 +72,10 @@ test('PPL 4. Validación de campos de tarjeta y selección mínima.', async ({ p
   // Verificar que NO se puede pagar sin llenar tarjeta
   await expect(page.getByText('Realizar compra')).toBeDisabled();
 
-  await page.getByRole("button", { name: "1", exact: true }).click();
+  // CORRECCIÓN: Los números son divs con clase "boleto-item", no buttons
+  // Buscar el div que contiene el texto "1" exactamente
+  await page.locator('.boleto-item').filter({ hasText: /^1$/ }).click();
+  
   await page.getByRole('textbox', { name: '•••• •••• •••• ••••' }).click();
   await page.getByRole('textbox', { name: '•••• •••• •••• ••••' }).fill('1234 1234 1234 1234');
   await page.getByRole('textbox', { name: 'MM' }).click();
@@ -98,7 +101,7 @@ test('PPL 4. Validación de campos de tarjeta y selección mínima.', async ({ p
   await expect(page.getByText('Realizar compra')).toBeEnabled();
 
   await page.getByRole('textbox', { name: 'MM' }).click();
-  // CAMBIO AQUÍ: Usamos '00' para forzar inválido, ya que '32' se autocorrige a '12'
+  // Usamos '00' para forzar inválido
   await page.getByRole('textbox', { name: 'MM' }).fill('00');
 
   // Verificar que NO se puede pagar sin llenar tarjeta (mes inválido)
@@ -110,12 +113,27 @@ test('PPL 4. Validación de campos de tarjeta y selección mínima.', async ({ p
   //Verificar que si este disponible el boton de pagar
   await expect(page.getByText('Realizar compra')).toBeEnabled();
 
-  await page.getByText('62').click();
+  // Deseleccionar el boleto "1" que habíamos seleccionado al inicio
+  const boleto1 = page.locator('.boleto-item').filter({ hasText: /^1$/ });
+  
+  // Verificar que el boleto está seleccionado antes de deseleccionar
+  await expect(boleto1).toHaveClass(/selected/);
+  
+  // Hacer clic para deseleccionar
+  await boleto1.click();
+  
+  // Esperar a que React actualice el estado
+  await page.waitForTimeout(500);
+  
+  // Verificar que el boleto ya NO está seleccionado
+  await expect(boleto1).not.toHaveClass(/selected/);
 
-  // Verificar que NO se puede pagar sin llenar tarjeta (sin boletos)
+  // Verificar que NO se puede pagar sin boletos seleccionados
   await expect(page.getByText('Realizar compra')).toBeDisabled();
 
-  await page.getByText('62').click();
+  // Volver a seleccionar el boleto 1
+  await boleto1.click();
+  await page.waitForTimeout(300);
 
   //Verificar que si este disponible el boton de pagar
   await expect(page.getByText('Realizar compra')).toBeEnabled();
