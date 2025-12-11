@@ -225,11 +225,7 @@ const SorteoDetalles = () => {
     const token = getToken();
 
     if (!token) {
-      if (
-        window.confirm(
-          "Para apartar boletos, necesitas iniciar sesión. ¿Deseas ir a la página de inicio de sesión ahora?"
-        )
-      ) {
+      if (window.confirm("Para apartar boletos, necesitas iniciar sesión. ¿Deseas ir a la página de inicio de sesión ahora?")) {
         navigate("/login");
       }
       return;
@@ -237,16 +233,38 @@ const SorteoDetalles = () => {
 
     const numerosAStrings = boletosSeleccionados.map(String);
 
-    apartarNumeros(sorteo.id, numerosAStrings, token)
+    // Filtrar boletos seleccionados que realmente están disponibles
+    const boletosDisponibles = numerosAStrings.filter((num) => {
+      const boleto = boletosOcupados.find(b => String(b.numeroBoleto) === num);
+
+      // Si no existe → está libre → permitir
+      if (!boleto) return true;
+
+      // Si está apartado por mí → NO intentar volver a apartarlo
+      if (boleto.estado === "APARTADO" && boleto.userId === idUsuarioLogueado) {
+        return false;
+      }
+
+      // Si está ocupado (comprado o apartado por otro) → no permitir apartarlo
+      return false;
+    });
+
+    if (boletosDisponibles.length === 0) {
+      toast.warning("Los boletos seleccionados no están disponibles para apartar.");
+      return;
+    }
+
+    apartarNumeros(sorteo.id, boletosDisponibles, token)
       .then((response) => {
         const numerosApartados = response.reservedTickets.map(
           (ticket) => ticket.numeroBoleto
         );
+
         toast.success(`Boletos apartados exitosamente: ${numerosApartados.join(", ")}`);
 
         setBoletosOcupados((prev) => [...prev, ...response.reservedTickets]);
         setBoletosSeleccionados([]);
-        setUsuarioTieneBoletosApartados(true); // Actualizamos el estado para mostrar el botón de pagar
+        setUsuarioTieneBoletosApartados(true);
 
         if (response.failedToReserve && response.failedToReserve.length > 0) {
           toast.warning(
@@ -299,17 +317,29 @@ const SorteoDetalles = () => {
       boleto.userId === idUsuarioLogueado
     );
 
-    //Solo imprimir mensaje en consolo de los boletos que se intentarán liberar
+    if (boletosApartadosDelUsuario.length === 0) {
+      toast.error("Ninguno de los boletos seleccionados puede liberarse.");
+      return;
+    }
+
+    //Solo imprimir mensaje en consola de los boletos que se intentarán liberar
     console.log("Boletos a liberar:", boletosApartadosDelUsuario);
 
-    /*liberarNumeros(sorteo.id, boletosApartadosDelUsuario.map(b => String(b.numeroBoleto)), token)
+    liberarNumeros(sorteo.id, boletosApartadosDelUsuario.map(b => String(b.numeroBoleto)), token)
       .then((response) => {
-        const numerosLiberados = response.freeTickets.map(
-          (ticket) => ticket.numeroBoleto
-        );
-        toast.success(`Boletos liberados exitosamente: ${numerosLiberados.join(", ")}`);
+        console.log("Respuesta del backend al liberar:", response);
+        //const numerosLiberadosMapeados = response.numerosLiberados.map(
+        //  (ticket) => ticket.numeroBoleto
+        //);
+        toast.success(`Boletos liberados exitosamente: ${response.numerosLiberados.join(", ")}`);
+        //toast.success(`Boletos liberados exitosamente: ${numerosLiberadosMapeados.join(", ")}`);
 
-        setBoletosOcupados((prev) => [...prev.filter(b => !numerosLiberados.includes(b.numeroBoleto)), ...response.freeTickets]);
+        // Actualizar el estado local de los boletos ocupados
+        setBoletosOcupados((prev) =>
+          prev.filter(
+            (b) => !response.numerosLiberados.includes(b.numeroBoleto)
+          )
+        );
         setBoletosSeleccionados([]);
 
         if (response.failedToReserve && response.failedToReserve.length > 0) {
@@ -318,12 +348,16 @@ const SorteoDetalles = () => {
               ", "
             )}`
           );
+        } else {
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
         }
       })
       .catch((error) => {
         console.error("Error al liberar boletos:", error);
         toast.error(`Error: ${error.message}`);
-      });*/
+      });
   };
 
   if (!sorteo) {

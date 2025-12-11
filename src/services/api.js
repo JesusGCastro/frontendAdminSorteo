@@ -136,16 +136,16 @@ export const actualizarSorteo = async (sorteoId, sorteoData, token) => {
   });
 
   // Si la respuesta no fue exitosa
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("Error del backend:", errorText);
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("Error del backend:", errorText);
 
-      if (res.status === 401) {
-        throw new Error("Token inválido o expirado");
-      }
-
-      throw new Error(`Error al actualizar sorteo: (${res.status})`);
+    if (res.status === 401) {
+      throw new Error("Token inválido o expirado");
     }
+
+    throw new Error(`Error al actualizar sorteo: (${res.status})`);
+  }
 
   const data = await res.json();
   return data;
@@ -192,16 +192,24 @@ export const apartarNumeros = async (sorteoId, numeros, token) => {
 }
 
 export const liberarNumeros = async (sorteoId, numeros, token) => {
-  /*
   const bodyData = { numerosBoletos: numeros };
-  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/${sorteoId}/tickets/release`, {
-    method: "POST",
+  const res = await fetch(`${API_URL}/${RAFFLES_PATH}/user/tickets/release/${sorteoId}`, {
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`,
     },
-    body: JSON.stringify(bodyData),*/
-  //});
+    body: JSON.stringify(bodyData),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+
+    throw new Error(errorData.error || `Error ${res.status}: No se pudieron liberar los números.`);
+  }
+
+  const data = await res.json();
+  return data;
 }
 
 // Comprar boletos
