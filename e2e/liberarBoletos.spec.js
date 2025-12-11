@@ -1,4 +1,4 @@
-/*import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 // Constantes para la prueba
 const RAFFLE_ID = '2'; // Usamos el ID 2 como en tu captura
@@ -189,4 +189,3 @@ test.describe('Flujo: Liberación de Boletos Apartados', () => {
 
 });
 
-*/

@@ -1,4 +1,4 @@
-/*import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { resolve } from "path";
 
 // --- Helper para Login ---
@@ -30,7 +30,7 @@ test.describe('Sorteador Edita Sorteo (Interfaz)', () => {
   });
 
   test('SES 1. Verificar acceso y renderizado de vista de edición', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Nombre del sorteo' })).toBeVisible();
+    await expect (page.getByText('SorteoPagosBoletos apartados')).toBeVisible();
     await expect(page.getByText("Monto recaudado")).toBeVisible();
     await expect(page.getByRole('button', { name: 'Confirmar cambios' })).toBeVisible();
   });
@@ -65,7 +65,7 @@ test.describe('Sorteador Edita Sorteo (Interfaz)', () => {
     await fechaFin.fill('2025-12-24');
     await fechaRealizacion.fill('2025-12-25');
 
-    await expect(fechaInicio).toHaveValue('2025-11-01');
+    await expect(fechaInicio).toHaveValue('2025-11-15');
   });
 
   test('SES 4. Interacción con botones de Estado', async ({ page }) => {
@@ -104,4 +104,4 @@ test.describe('Sorteador Edita Sorteo (Interfaz)', () => {
     await btnConfirmar.click();
   });
 
-});*/
+});

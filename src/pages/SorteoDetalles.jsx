@@ -36,16 +36,19 @@ const SorteoDetalles = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const [boletosSeleccionados, setBoletosSeleccionados] = useState([]);
   const [mostrarSoloMisBoletos, setMostrarSoloMisBoletos] = useState(false);
-  const [usuarioTieneBoletosApartados, setUsuarioTieneBoletosApartados] =
-    useState(false);
+  const [usuarioTieneBoletosApartados, setUsuarioTieneBoletosApartados] = useState(false);
   const boletosPorPagina = 52;
   const [mostrarModalPago, setMostrarModalPago] = useState(false)
+  
+  // --- CORRECCIÓN 1: Obtener sesión de forma segura ---
   const session = getSession();
 
-  const nombreUsuario = session?.user?.nombre || "Sorteador Anonimo";
-  const rolActual = getRolActual();
-  const rolFormateado =
-    rolActual.charAt(0).toUpperCase() + rolActual.slice(1).toLowerCase();
+  const nombreUsuario = session?.user?.nombre || "Usuario Invitado";
+  
+  // --- CORRECCIÓN 2: Validar si hay rol antes de formatear ---
+  // Si getRolActual falla o devuelve null, usamos "invitado"
+  const rolActual = getRolActual() || "invitado"; 
+  const rolFormateado = rolActual.charAt(0).toUpperCase() + rolActual.slice(1).toLowerCase();
 
   useEffect(() => {
     const obtenerDatosCompletos = async () => {
@@ -59,7 +62,8 @@ const SorteoDetalles = () => {
 
         // --- Lógica de validación (correcta) ---
         const session = getSession();
-        const usuarioLogueado = session.user?.user || session.user;
+        // --- CORRECCIÓN 3: Uso seguro de session?. ---
+        const usuarioLogueado = session?.user?.user || session?.user;
 
         if (usuarioLogueado && Array.isArray(dataBoletos)) {
           const tieneApartados = dataBoletos.some(
@@ -69,13 +73,12 @@ const SorteoDetalles = () => {
           );
           setUsuarioTieneBoletosApartados(tieneApartados);
         } else {
-          // Si no hay sesión o no hay boletos, nos aseguramos de que el estado sea false.
           setUsuarioTieneBoletosApartados(false);
         }
         // ------------------------------------
       } catch (error) {
         console.error("Error al obtener los datos del sorteo:", error);
-        setSorteo(null); // Usamos null para que la condición de carga funcione bien
+        setSorteo(null);
       }
     };
     obtenerDatosCompletos();
@@ -93,18 +96,19 @@ const SorteoDetalles = () => {
   //Obtenemos el id del usuario logueado
   const idUsuarioLogueado = useMemo(() => {
     const session = getSession();
-    const usuarioLogueado = session.user?.user || session.user;
+    // --- CORRECCIÓN 4: Uso seguro de session?. ---
+    const usuarioLogueado = session?.user?.user || session?.user;
     return usuarioLogueado ? usuarioLogueado.id : null;
-  }, [getSession()]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Quitamos getSession() de las dependencias para evitar loops
 
   const mostrarCategoriasUsuario = idUsuarioLogueado !== null;
 
-  console.log("ID Usuario Logueado:", idUsuarioLogueado);
+  // console.log("ID Usuario Logueado:", idUsuarioLogueado);
 
   const boletosEstadoMap = useMemo(() => {
     const map = {};
     if (Array.isArray(boletosOcupados)) {
-      // Añadida verificación por seguridad
       boletosOcupados.forEach((boleto) => {
         map[boleto.numeroBoleto] = boleto.estado;
       });
@@ -112,13 +116,10 @@ const SorteoDetalles = () => {
     return map;
   }, [boletosOcupados]);
 
-  // NUEVA LÓGICA: Agrupar mis boletos (Ignorando paginación)
-  // MOVIDO AQUÍ ARRIBA PARA EVITAR EL ERROR DE HOOKS
   const misBoletosGrouped = useMemo(() => {
     if (!idUsuarioLogueado || !Array.isArray(boletosOcupados))
       return { apartados: [], comprados: [] };
 
-    // Filtramos TODOS los boletos del usuario separando apatados de comprados
     const mis = boletosOcupados.filter((b) => b.userId === idUsuarioLogueado);
 
     return {
@@ -134,7 +135,6 @@ const SorteoDetalles = () => {
   }, [boletosOcupados, idUsuarioLogueado]);
 
   const estadoBoleto = (num) => {
-    // Si está seleccionado por el usuario
     if (boletosSeleccionados.includes(num)) {
       return "seleccionado";
     }
@@ -144,26 +144,15 @@ const SorteoDetalles = () => {
     if (boletoInfo) {
       const { estado, userId } = boletoInfo;
 
-      console.log(
-        "Estado del boleto:",
-        estado,
-        "ID Usuario del boleto:",
-        userId
-      );
-      console.log("Información completa del boleto:", boletoInfo);
-
-      // ---- MIS BOLETOS ----
       if (idUsuarioLogueado && userId === idUsuarioLogueado) {
         if (estado === "APARTADO") return "mi_apartado";
         if (estado === "COMPRADO") return "mi_comprado";
       }
 
-      // ---- BOLETOS DE OTROS ----
       if (estado === "APARTADO") return "apartado";
       if (estado === "COMPRADO") return "vendido";
     }
 
-    // Si está libre
     return "disponible";
   };
 
@@ -177,10 +166,8 @@ const SorteoDetalles = () => {
       return;
     }
 
-    // Obtener info completa del boleto
     const b = boletosOcupados.find(x => x.numeroBoleto === num);
 
-    // Si está libre → permitir
     if (!b) {
       setBoletosSeleccionados(prev =>
         prev.includes(num) ? prev.filter(n => n !== num) : [...prev, num]
@@ -188,23 +175,15 @@ const SorteoDetalles = () => {
       return;
     }
 
-    // Si está comprado → nunca permitir
     if (b.estado === "COMPRADO") return;
-
-    // Si está apartado por otro usuario → no permitir
     if (b.estado === "APARTADO" && b.userId !== idUsuarioLogueado) return;
 
-    // Si está apartado por mí → permitir selección
     if (b.estado === "APARTADO" && b.userId === idUsuarioLogueado) {
       setBoletosSeleccionados(prev =>
         prev.includes(num) ? prev.filter(n => n !== num) : [...prev, num]
       );
       return;
     }
-    /*
-    setBoletosSeleccionados((prev) =>
-      prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num]
-    );*/
   };
 
   const apartarBoletos = () => {
@@ -224,6 +203,7 @@ const SorteoDetalles = () => {
 
     const token = getToken();
 
+    // Redirigir si no hay sesión al intentar apartar
     if (!token) {
       if (window.confirm("Para apartar boletos, necesitas iniciar sesión. ¿Deseas ir a la página de inicio de sesión ahora?")) {
         navigate("/login");
@@ -233,19 +213,12 @@ const SorteoDetalles = () => {
 
     const numerosAStrings = boletosSeleccionados.map(String);
 
-    // Filtrar boletos seleccionados que realmente están disponibles
     const boletosDisponibles = numerosAStrings.filter((num) => {
       const boleto = boletosOcupados.find(b => String(b.numeroBoleto) === num);
-
-      // Si no existe → está libre → permitir
       if (!boleto) return true;
-
-      // Si está apartado por mí → NO intentar volver a apartarlo
       if (boleto.estado === "APARTADO" && boleto.userId === idUsuarioLogueado) {
         return false;
       }
-
-      // Si está ocupado (comprado o apartado por otro) → no permitir apartarlo
       return false;
     });
 
@@ -310,7 +283,6 @@ const SorteoDetalles = () => {
 
     const numerosAStrings = boletosSeleccionados.map(String);
 
-    //Mantener solo los boletos con estado APARTADO y que pertenezcan al usuario logueado
     const boletosApartadosDelUsuario = boletosOcupados.filter((boleto) =>
       numerosAStrings.includes(String(boleto.numeroBoleto)) &&
       boleto.estado === "APARTADO" &&
@@ -322,19 +294,10 @@ const SorteoDetalles = () => {
       return;
     }
 
-    //Solo imprimir mensaje en consola de los boletos que se intentarán liberar
-    console.log("Boletos a liberar:", boletosApartadosDelUsuario);
-
     liberarNumeros(sorteo.id, boletosApartadosDelUsuario.map(b => String(b.numeroBoleto)), token)
       .then((response) => {
-        console.log("Respuesta del backend al liberar:", response);
-        //const numerosLiberadosMapeados = response.numerosLiberados.map(
-        //  (ticket) => ticket.numeroBoleto
-        //);
         toast.success(`Boletos liberados exitosamente: ${response.numerosLiberados.join(", ")}`);
-        //toast.success(`Boletos liberados exitosamente: ${numerosLiberadosMapeados.join(", ")}`);
 
-        // Actualizar el estado local de los boletos ocupados
         setBoletosOcupados((prev) =>
           prev.filter(
             (b) => !response.numerosLiberados.includes(b.numeroBoleto)
@@ -374,35 +337,6 @@ const SorteoDetalles = () => {
     );
   }
 
-  // // Lógica de paginación segura (evita error si 'sorteo.cantidadMaximaBoletos' no existe)
-  // const cantidadBoletos = sorteo.cantidadMaximaBoletos || 0;
-  // const boletos = Array.from({ length: cantidadBoletos }, (_, i) => i + 1);
-  // const totalPaginas = Math.ceil(boletos.length / boletosPorPagina);
-  // const indiceInicio = (paginaActual - 1) * boletosPorPagina;
-  // const boletosPagina = boletos.slice(
-  //   indiceInicio,
-  //   indiceInicio + boletosPorPagina
-  // );
-
-  // // Filtrar si se activa "Mis boletos"
-  // const boletosFiltrados = mostrarSoloMisBoletos
-  //   ? boletosPagina.filter((num) => {
-  //       const b = boletosOcupados.find((x) => x.numeroBoleto === num);
-  //       if (!b) return false;
-  //       return (
-  //         b.userId === idUsuarioLogueado &&
-  //         (b.estado === "APARTADO" || b.estado === "COMPRADO")
-  //       );
-  //     })
-  //   : boletosPagina;
-
-
-  // Si sorteo es null, evita romper todo
-  if (!sorteo) {
-    return <div>Cargando...</div>; // o lo que quieras mostrar
-  }
-
-  // Lógica segura
   const cantidadBoletos = sorteo.cantidadMaximaBoletos ?? 0;
   const boletos = Array.from({ length: cantidadBoletos }, (_, i) => i + 1);
   const totalPaginas = Math.ceil(boletos.length / boletosPorPagina);
@@ -416,10 +350,8 @@ const SorteoDetalles = () => {
     setMostrarModalPago(false);
 
     if (metodo === 'online') {
-      // Redirige a pago en línea (actual)
       navigate(`/pagar/${sorteo.id}`);
     } else if (metodo === 'transferencia') {
-      // Redirige a pago por transferencia (nueva página)
       navigate(`/pagar-transferencia/${sorteo.id}`);
     }
   };
@@ -429,7 +361,6 @@ const SorteoDetalles = () => {
       <Sidebar />
       <div className="flex-grow-1" style={{ marginLeft: "80px" }}>
         <div className="container py-4">
-          {/* Etiqueta del usuario */}
           <p
             style={{
               color: "#000",
@@ -439,6 +370,7 @@ const SorteoDetalles = () => {
               marginBottom: "0.5rem",
             }}
           >
+            {/* Si es invitado, muestra Invitado / Invitado, o ajusta el texto si prefieres */}
             {`${nombreUsuario} / ${rolFormateado}`}
           </p>
           <h2 className="fw-bold mb-3">{sorteo.nombre}</h2>
@@ -477,7 +409,6 @@ const SorteoDetalles = () => {
             <div className="d-flex justify-content-between align-items-center mb-2">
               <h5 className="fw-bold m-0">Apartar Boletos</h5>
 
-              {/* Checkbox Mis boletos */}
               {mostrarCategoriasUsuario && (
                 <div className="form-check">
                   <input
@@ -508,24 +439,9 @@ const SorteoDetalles = () => {
               )}
             </div>
 
-            {/* <div className="boletos-container">
-              {boletosFiltrados.map((num) => (
-                <button
-                  key={num}
-                  className={`boleto ${estadoBoleto(num)}`}
-                  onClick={() => alternarSeleccion(num)}
-                  disabled={!!boletosEstadoMap[num]}
-                >
-                  {num}
-                </button>
-              ))}
-            </div> */}
-
             <div className="boletos-container">
-              {/* VISTA 1: MODO "MIS BOLETOS" (Agrupado y sin paginación) */}
               {mostrarSoloMisBoletos ? (
                 <div className="w-100">
-                  {/* Sección Apartados */}
                   {misBoletosGrouped.apartados.length > 0 && (
                     <div className="mb-3">
                       <h6 className="fw-bold text-muted mb-2">Mis Apartados</h6>
@@ -535,7 +451,7 @@ const SorteoDetalles = () => {
                             key={num}
                             className={`boleto ${estadoBoleto(num)}`}
                             onClick={() => alternarSeleccion(num)}
-                            disabled={true} // Mis apartados ya están ocupados
+                            disabled={true}
                           >
                             {num}
                           </button>
@@ -544,7 +460,6 @@ const SorteoDetalles = () => {
                     </div>
                   )}
 
-                  {/* Sección Comprados */}
                   {misBoletosGrouped.comprados.length > 0 && (
                     <div className="mb-3">
                       <h6 className="fw-bold text-muted mb-2">Mis Comprados</h6>
@@ -554,7 +469,7 @@ const SorteoDetalles = () => {
                             key={num}
                             className={`boleto ${estadoBoleto(num)}`}
                             onClick={() => alternarSeleccion(num)}
-                            disabled={true} // Mis comprados ya están ocupados
+                            disabled={true}
                           >
                             {num}
                           </button>
@@ -563,7 +478,6 @@ const SorteoDetalles = () => {
                     </div>
                   )}
 
-                  {/* Mensaje si no tiene nada */}
                   {misBoletosGrouped.apartados.length === 0 &&
                     misBoletosGrouped.comprados.length === 0 && (
                       <p className="text-center text-muted">
@@ -572,7 +486,6 @@ const SorteoDetalles = () => {
                     )}
                 </div>
               ) : (
-                /* VISTA 2: MODO NORMAL (Paginado) - Se mantiene igual para los tests */
                 boletosPagina.map((num) => (
                   <button
                     key={num}
@@ -580,7 +493,7 @@ const SorteoDetalles = () => {
                     onClick={() => alternarSeleccion(num)}
                     disabled={
                       estadoBoleto(num) === "vendido" ||
-                      estadoBoleto(num) === "apartado" 
+                      estadoBoleto(num) === "apartado"
                     }
                   >
                     {num}
@@ -589,27 +502,6 @@ const SorteoDetalles = () => {
               )}
             </div>
 
-            {/* <div className="d-flex justify-content-center align-items-center mt-3">
-              <button
-                className="btn btn-sm btn-outline-secondary mx-2"
-                disabled={paginaActual === 1}
-                onClick={() => setPaginaActual((p) => p - 1)}
-              >
-                &lt;
-              </button>
-              <span>
-                Página {paginaActual} de {totalPaginas}
-              </span>
-              <button
-                className="btn btn-sm btn-outline-secondary mx-2"
-                disabled={paginaActual === totalPaginas}
-                onClick={() => setPaginaActual((p) => p + 1)}
-              >
-                &gt;
-              </button>
-            </div> */}
-
-            {/* Solo mostrar paginación si NO estamos en "Mis boletos" */}
             {!mostrarSoloMisBoletos && (
               <div className="d-flex justify-content-center align-items-center mt-3">
                 <button

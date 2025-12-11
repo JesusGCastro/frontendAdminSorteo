@@ -1,4 +1,4 @@
-/*import { test, expect } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 const loginAsSorteador = async (page) => {
     await page.goto("http://localhost:5173/frontendAdminSorteo/");
@@ -104,4 +104,4 @@ test("SMNP 4 - Visualización de botones en no transferencia.", async ({ page })
     } else {
          console.log("Salto Test 4: No hay pagos en línea para probar.");
     }
-});*/
+});

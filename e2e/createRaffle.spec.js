@@ -1,4 +1,4 @@
-/*import { test, expect } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { resolve } from "path";
 
 const generateFutureDateTime = (daysAhead, hoursAhead = 0, minutesAhead = 0) => {
@@ -296,4 +296,4 @@ test.describe("", () => {
     
     await expect(page).toHaveURL('http://localhost:5173/frontendAdminSorteo/#/');
   });
-});*/
+});

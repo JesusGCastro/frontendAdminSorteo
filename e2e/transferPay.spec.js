@@ -1,4 +1,4 @@
-/*import { test, expect } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { resolve } from "path";
 
 // Función para iniciar sesión como participante
@@ -39,7 +39,7 @@ const waitForToast = async (page, message) => {
     `Toast no encontrado con mensaje: "${message}". Ver screenshot en test-results/`
   );
 };
-/*
+
 test("PRCP 1 - Participante registra transferencia como comprobante de pago", async ({
   page,
 }) => {
@@ -54,7 +54,7 @@ test("PRCP 1 - Participante registra transferencia como comprobante de pago", as
   await page.locator("#file-upload").setInputFiles(mockImagePath);
   await expect(page.getByRole("img", { name: "Comprobante de transferencia" })).toBeVisible();
 
-  await page.getByText("48").click();
+  await page.getByText('10', { exact: true }).click();
 
   await page.getByRole("button", { name: "Enviar comprobante de" }).click();
 
@@ -95,7 +95,7 @@ test("PRCP 3 - Participante no puede pagar sin subir comprobante", async ({
   await page.getByRole("button", { name: " Transferencia Bancaria" }).click();
 
   // Seleccionar un número
-  await page.getByText("37").click();
+  await page.getByText('15', { exact: true }).click();
 
   // Verificar que NO se puede pagar sin subir comprobante
 
@@ -136,11 +136,11 @@ test("PRCP 5 - Participante no puede seleccionar boletos apartados con transfere
   await page.getByRole("button", { name: "Pagar Números Apartados" }).click();
   await page.getByRole("button", { name: " Transferencia Bancaria" }).click();
 
-  const boletoPendiente = page.getByText("29");
+  const boletoPendiente = page.getByText("13");
 
   // Simular intento de clic
   await boletoPendiente.click();
 
   // Verificar que NO se seleccione
   await expect(boletoPendiente).not.toHaveClass(/selected/);
-});*/
+});
