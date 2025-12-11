@@ -580,7 +580,7 @@ const SorteoDetalles = () => {
                     onClick={() => alternarSeleccion(num)}
                     disabled={
                       estadoBoleto(num) === "vendido" ||
-                      estadoBoleto(num) === "apartado" // solo apartados de otros
+                      estadoBoleto(num) === "apartado" 
                     }
                   >
                     {num}
