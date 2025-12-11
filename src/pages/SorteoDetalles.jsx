@@ -334,7 +334,7 @@ const SorteoDetalles = () => {
           <p>Cargando sorteo...</p>
         </div>
       </div>
-    );*/
+    );
   }
 
   const cantidadBoletos = sorteo.cantidadMaximaBoletos ?? 0;

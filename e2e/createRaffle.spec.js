@@ -6,7 +6,6 @@ test.describe("", () => {
   });
 });
 
-/*
 const generateFutureDateTime = (daysAhead, hoursAhead = 0, minutesAhead = 0) => {
   const date = new Date();
   date.setDate(date.getDate() + daysAhead);
@@ -128,7 +127,7 @@ test.describe("", () => {
     await waitForToast(page, "¡Sorteo creado exitosamente!");
   });
 });
-/*
+
 test.describe("", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsSorteador(page);
